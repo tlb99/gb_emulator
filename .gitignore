@@ -1,5 +1,4 @@
 # CMake build directories
-.idea/
 cmake-build-*/
 build/
 out/
