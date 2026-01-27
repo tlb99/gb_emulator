@@ -3,4 +3,10 @@ project(gb_emulator)
 
 set(CMAKE_CXX_STANDARD 26)
 
-add_executable(gb_emulator main.cpp)
+#find_package(SDL3 REQUIRED)
+
+# Link the executable with SDL3 library
+#target_link_libraries(gb_emulator PRIVATE SDL3::SDL3)
+
+add_executable(gb_emulator main.cpp
+        include/opcodes.h)
