@@ -50,3 +50,5 @@ gb_emulator
 *~
 *.swp
 *.swo
+
+data/
