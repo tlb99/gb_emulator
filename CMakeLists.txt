@@ -10,4 +10,6 @@ set(CMAKE_CXX_STANDARD 20)
 
 add_executable(gb_emulator main.cpp
         include/opcodes.h
-        include/GBMemory.h)
+        include/GBMemory.h
+        include/GBGame.h
+        src/GBGame.cpp)
