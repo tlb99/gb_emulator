@@ -12,4 +12,6 @@ add_executable(gb_emulator main.cpp
         include/opcodes.h
         include/GBMemory.h
         include/GBGame.h
-        src/GBGame.cpp)
+        src/GBGame.cpp
+        src/cpu.cc
+        src/cpu.h)

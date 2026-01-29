@@ -16,8 +16,5 @@ int main(int argc, char* argv[]) {
 
   const bool loaded = GBGame::loadFromFile(argv[1]);
 
-  std::cout << loaded << std::endl;
-
   return 0;
-
 }
