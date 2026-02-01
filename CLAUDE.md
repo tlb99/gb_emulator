@@ -1,4 +1,4 @@
-'# Project Instructions for C++ Game Boy emulator
+# Project Instructions for C++ Game Boy emulator
 
 ## 🚨 CRITICAL: Code Standards & Guidelines
 1.  **Language Standard**: All C++ code must adhere to the C++20 standard.
