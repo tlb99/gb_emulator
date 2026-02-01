@@ -2,14 +2,14 @@
 // Created by Tony on 1/27/2026.
 //
 
-#include "../include/GBGame.h"
+#include "memory/game.h"
 
 #include <filesystem>
 #include <fstream>
 #include <iterator>
 #include <system_error>
 
-bool GBGame::loadFromFile(const std::string& game_path) {
+bool Game::loadFromFile(const std::string& game_path) {
   // Load game
   std::ifstream input_game(game_path, std::ios::binary);
 
