@@ -1,7 +1,7 @@
 #include <fstream>
 #include <iostream>
 
-#include "include/GBGame.h"
+#include "include/memory/game.h"
 
 // TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or click the <icon
 // src="AllIcons.Actions.Execute"/> icon in the gutter.
@@ -12,9 +12,9 @@ int main(int argc, char* argv[]) {
       exit(0);
   }
 
-  GBGame game;
+  GameBoy::Game Game;
 
-  const bool loaded = GBGame::loadFromFile(argv[1]);
+  const bool loaded = GameBoy::Game::loadFromFile(argv[1]);
 
   return 0;
 }

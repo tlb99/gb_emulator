@@ -9,9 +9,11 @@ set(CMAKE_CXX_STANDARD 20)
 #target_link_libraries(gb_emulator PRIVATE SDL3::SDL3)
 
 add_executable(gb_emulator main.cpp
-        include/opcodes.h
-        include/GBMemory.h
-        include/GBGame.h
-        src/GBGame.cpp
-        src/cpu.cc
-        src/cpu.h)
+        src/memory/game.cc
+        src/processor/cpu.cc
+        src/game_boy.cc
+        src/memory/memory.cc
+        src/graphics/ppu.cc
+)
+
+target_include_directories(gb_emulator PRIVATE ${CMAKE_SOURCE_DIR}/include)
