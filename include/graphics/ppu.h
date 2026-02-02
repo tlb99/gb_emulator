@@ -5,10 +5,7 @@
 #ifndef GB_EMULATOR_PPU_H
 #define GB_EMULATOR_PPU_H
 
-namespace GameBoy {
-  class PPU {
-  };
-}
-
+class PPU {
+};
 
 #endif //GB_EMULATOR_PPU_H

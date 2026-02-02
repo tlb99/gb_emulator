@@ -3,5 +3,3 @@
 //
 
 #include "processor/cpu.h"
-
-namespace GameBoy {}  // namespace GameBoy

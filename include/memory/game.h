@@ -7,16 +7,14 @@
 #include <filesystem>
 #include <vector>
 
-namespace GameBoy {
-  class Game {
-  public:
-    Game() = default;
-    static bool loadFromFile(const std::string& game_path);
+class Game {
+public:
+  Game() : is_game_loaded_(false), memory_(0) {};
+  bool loadFromFile(const std::string& game_path);
 
-  private:
-    static inline bool is_game_loaded_ = false;
-    static inline std::vector<std::byte> memory_;
-  };
-}
+private:
+  bool is_game_loaded_;
+  std::vector<std::byte> memory_;
+};
 
 #endif  // GB_EMULATOR_GBGAME_H

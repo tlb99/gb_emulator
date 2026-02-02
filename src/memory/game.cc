@@ -9,7 +9,7 @@
 #include <iterator>
 #include <system_error>
 
-bool GameBoy::Game::loadFromFile(const std::string& game_path) {
+bool Game::loadFromFile(const std::string& game_path) {
   // Load game
   std::ifstream input_game(game_path, std::ios::binary);
 

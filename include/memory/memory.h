@@ -5,9 +5,7 @@
 #ifndef GB_EMULATOR_MEMORY_H
 #define GB_EMULATOR_MEMORY_H
 
-namespace GameBoy {
-    class memory {
-    };
-} // GameBoy
+class Memory {
+};
 
 #endif //GB_EMULATOR_MEMORY_H
