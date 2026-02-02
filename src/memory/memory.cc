@@ -4,5 +4,3 @@
 
 #include "memory/memory.h"
 
-namespace GameBoy {
-} // GameBoy
