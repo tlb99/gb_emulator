@@ -7,14 +7,14 @@
 #include <filesystem>
 #include <vector>
 
-class GBGame {
+class Game {
 public:
-  GBGame() = default;
-  static bool loadFromFile(const std::string& game_path);
+  Game() : is_game_loaded_(false), memory_(0) {};
+  bool loadFromFile(const std::string& game_path);
 
 private:
-  static inline bool is_game_loaded_ = false;
-  static inline std::vector<std::byte> memory_;
+  bool is_game_loaded_;
+  std::vector<std::byte> memory_;
 };
 
 #endif  // GB_EMULATOR_GBGAME_H
