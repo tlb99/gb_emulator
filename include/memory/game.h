@@ -14,7 +14,7 @@ public:
 
 private:
   bool is_game_loaded_;
-  std::vector<std::byte> memory_;
+  std::vector<uint8_t> memory_;
 };
 
 #endif  // GB_EMULATOR_GBGAME_H
