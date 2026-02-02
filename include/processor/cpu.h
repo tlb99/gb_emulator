@@ -14,7 +14,7 @@ public:
   explicit CPU(WRAM& memory)
   : wram_(memory),
     a_(0), f_(0), b_(0), c_(0), d_(0), e_(0), h_(0), l_(0),
-    pc_(0x0150), sp_(0), zero_(false), substraction_(false), half_carry_(false), carry_(false) {}
+    pc_(0x0100), sp_(0), zero_(false), substraction_(false), half_carry_(false), carry_(false) {}
   void Cycle();
 
 private:
@@ -38,7 +38,7 @@ private:
   uint8_t l_;
 
   // Program counter and stack pointer
-  uint16_t pc_;  // Program counter
+  uint16_t pc_;  // Program counter -- initialized to 0x0100, where the Game Boy first starts executing game instructions
   uint16_t sp_;  // Stack pointer
 
   // Flags
