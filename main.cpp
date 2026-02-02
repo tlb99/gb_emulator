@@ -14,9 +14,8 @@ int main(int argc, char* argv[]) {
   }
 
   GameBoy game_boy;
-  bool loaded = game_boy.loadGame(argv[1]);
-
-  std::cout << loaded << std::endl;
+  game_boy.loadGame(argv[1]);
+  game_boy.run();
 
   return 0;
 }

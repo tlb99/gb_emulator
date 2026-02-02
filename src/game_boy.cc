@@ -7,3 +7,7 @@
 bool GameBoy::loadGame(const std::string& path) {
   return game_.loadFromFile(path);
 }
+
+void GameBoy::run() {
+
+}
