@@ -12,7 +12,7 @@ add_executable(gb_emulator main.cpp
         src/memory/game.cc
         src/processor/cpu.cc
         src/game_boy.cc
-        src/memory/memory.cc
+        src/memory/wram.cc
         src/graphics/ppu.cc
 )
 

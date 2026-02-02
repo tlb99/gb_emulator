@@ -4,18 +4,17 @@
 
 #ifndef GB_EMULATOR_CPU_H
 #define GB_EMULATOR_CPU_H
-#include <bits/shared_ptr.h>
 
 #include <cstdint>
 
-#include "memory/memory.h"
+#include "memory/wram.h"
 
 class CPU {
 public:
-  explicit CPU(Memory& memory)
-  : memory_(memory),
+  explicit CPU(WRAM& memory)
+  : wram_(memory),
     a_(0), f_(0), b_(0), c_(0), d_(0), e_(0), h_(0), l_(0),
-    pc_(0), sp_(0), zero_(false), substraction_(false), half_carry_(false), carry_(false) {}
+    pc_(0x0150), sp_(0), zero_(false), substraction_(false), half_carry_(false), carry_(false) {}
   void Cycle();
 
 private:
@@ -23,7 +22,7 @@ private:
   void Decode();
   void Execute();
 
-  Memory& memory_;
+  WRAM& wram_;
 
   // 8-bit Registers
   uint8_t a_;

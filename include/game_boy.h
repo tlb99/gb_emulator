@@ -17,7 +17,7 @@ public:
 private:
   CPU cpu_;
   PPU ppu_;
-  Memory memory_;
+  WRAM memory_;
   Game game_;
 };
 
