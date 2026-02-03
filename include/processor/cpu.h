@@ -7,21 +7,19 @@
 
 #include <cstdint>
 
+#include "memory/game.h"
 #include "memory/wram.h"
 
 class CPU {
 public:
-  explicit CPU(WRAM& memory)
-  : wram_(memory),
+  explicit CPU(WRAM& memory, Game& game)
+  : wram_(memory), game_(game),
     a_(0), f_(0), b_(0), c_(0), d_(0), e_(0), h_(0), l_(0),
     pc_(0x0100), sp_(0), zero_(false), substraction_(false), half_carry_(false), carry_(false) {}
   void Cycle();
 
 private:
-  void Fetch();
-  void Decode();
-  void Execute();
-
+  Game& game_;
   WRAM& wram_;
 
   // 8-bit Registers
