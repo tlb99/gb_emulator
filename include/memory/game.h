@@ -10,7 +10,9 @@
 class Game {
 public:
   Game() : is_game_loaded_(false), memory_(0) {};
-  bool loadFromFile(const std::string& game_path);
+  bool LoadFromFile(const std::string& game_path);
+  [[nodiscard]] bool IsGameLoaded() const { return is_game_loaded_; }
+  [[nodiscard]] const std::vector<uint8_t>& GetMemory() const { return memory_; }
 
 private:
   bool is_game_loaded_;
