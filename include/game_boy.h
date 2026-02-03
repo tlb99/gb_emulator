@@ -10,7 +10,7 @@
 
 class GameBoy {
 public:
-  GameBoy() : cpu_(memory_) {}
+  GameBoy() : cpu_(memory_, game_) {}
   void run();
   bool loadGame(const std::string& path);
 
