@@ -10,6 +10,8 @@
 class WRAM {
 public:
   WRAM() : wram_(8192) {}
+
+  void Write(uint8_t value, uint16_t address);
 private:
   std::vector<uint8_t> wram_; // According to Pan Docs, WRAM is 8 KiB by default on most Game Boy models but the Game Boy Color, which has 32 KiB
 };
