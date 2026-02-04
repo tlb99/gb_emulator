@@ -19,8 +19,8 @@ bool Game::LoadFromFile(const std::string& game_path) {
 
   // Check if the provided game file can be opened and the size can be obtained
   if (input_game.is_open() && !ec) {
-    memory_.resize(size);
-    input_game.read(reinterpret_cast<char*>(memory_.data()), static_cast<std::streamsize>(size)); // Explicit cast; GB games are not bigger than long long, not an issue
+    rom_.resize(size);
+    input_game.read(reinterpret_cast<char*>(rom_.data()), static_cast<std::streamsize>(size)); // Explicit cast; GB games are not bigger than long long, not an issue
     input_game.close();
     is_game_loaded_ = true;
     return true;
