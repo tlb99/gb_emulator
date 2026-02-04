@@ -6,19 +6,65 @@
 #define GB_EMULATOR_CPU_H
 
 #include <cstdint>
+#include <unordered_map>
 
 #include "memory/game.h"
 #include "memory/wram.h"
 
+
+
 class CPU {
 public:
   explicit CPU(WRAM& memory, Game& game)
-  : wram_(memory), game_(game),
+  : game_(game), wram_(memory),
     a_(0), f_(0), b_(0), c_(0), d_(0), e_(0), h_(0), l_(0),
     pc_(0x0100), sp_(0), zero_(false), substraction_(false), half_carry_(false), carry_(false) {}
   void Cycle();
 
 private:
+  enum class RegisterPair {
+    AF,
+    BC,
+    DE,
+    HL
+  };
+
+  const std::unordered_map<RegisterPair, std::pair<uint8_t&, uint8_t&>> register_pairs_ = {
+    {RegisterPair::AF, {a_, f_}},
+    {RegisterPair::BC, {b_, c_}},
+    {RegisterPair::DE, {d_, e_}},
+    {RegisterPair::HL, {h_, l_}}
+  };
+
+  /* 1-byte opcodes */
+
+  /**
+ * @brief Writes the value of source_reg into the WRAM address obtained by combining high_reg and low_reg.
+ *
+ * This function writes the 8-bit value of source_reg into the 16-bit WRAM address
+ * obtained by combining the 8-bit high_reg and low_reg registers using bit shifting
+ * and the OR bitwise operator.
+ *
+ * @param pair
+ * @param source
+ */
+  void LDr16r8(RegisterPair pair, const uint8_t& source) const;
+
+  // 2-byte opcodes
+  void LDn8(uint8_t& reg);
+
+  // 3-byte opcodes
+  void LDn16(RegisterPair pair);
+
+  // Decrements 16-bit register
+  void Dr16(RegisterPair pair) const;
+
+  // Helper function to combine two 8-bit registers into a 16-bit value
+  [[nodiscard]] uint16_t CombineRegisters(RegisterPair pair) const;
+
+  // Helper function to combine two bytes into a 16-bit value
+  static uint16_t CombineBytes(const uint8_t& hi, const uint8_t& lo) ;
+
   Game& game_;
   WRAM& wram_;
 
