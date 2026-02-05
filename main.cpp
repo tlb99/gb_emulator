@@ -8,8 +8,7 @@
 // src="AllIcons.Actions.Execute"/> icon in the gutter.
 int main(int argc, char* argv[]) {
   if (argc < 2) {
-      std::cout << "no game provided, press any key to exit..." << std::endl;
-      std::cin;
+      std::cout << "no game provided" << std::endl;
       exit(0);
   }
 
