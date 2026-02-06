@@ -18,7 +18,11 @@ void CPU::Cycle() {
     // NOP -- Do nothing
     case 0x00:
       break;
-    // LD B, n8
+    // DEC B
+    case 0x05:
+      DECr8(b_);
+      break;
+      // LD B, n8
     case 0x06:
       LDn8(b_);
       break;
@@ -63,6 +67,10 @@ void CPU::LDr16r8(const RegisterPair pair, const uint8_t &source) const {
   wram_.Write(source, CombineRegisters(pair));
 }
 
+void CPU::DECr8(uint8_t& reg) {
+  SUBr8(reg, 1);
+}
+
 void CPU::LDn8(uint8_t& reg) {
   const uint8_t byte = game_.ROM()[pc_];
   reg = byte;
@@ -93,6 +101,20 @@ void CPU::Dr16(const RegisterPair pair) const {
   } else {
     --lo;
   }
+}
+
+void CPU::SUBr8(uint8_t& left_reg, const uint8_t& right_reg) {
+  substraction_ = true;
+
+  // Handle underflow case
+  if (left_reg < right_reg) {
+    half_carry_ = true;
+    left_reg = 0xFF - right_reg + 1;
+  } else {
+    left_reg -= right_reg;
+  }
+
+  zero_ = left_reg == 0;
 }
 
 uint16_t CPU::CombineRegisters(const RegisterPair pair) const {

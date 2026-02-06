@@ -50,6 +50,9 @@ private:
  */
   void LDr16r8(RegisterPair pair, const uint8_t& source) const;
 
+  // Decrements 8-bit register
+  void DECr8(uint8_t& reg);
+
   // 2-byte opcodes
   void LDn8(uint8_t& reg);
 
@@ -58,6 +61,11 @@ private:
 
   // Decrements 16-bit register
   void Dr16(RegisterPair pair) const;
+
+  /* ALU operations */
+
+  // Subtract two registers from one another
+  void SUBr8(uint8_t& left_reg, const uint8_t& right_reg);
 
   // Helper function to combine two 8-bit registers into a 16-bit value
   [[nodiscard]] uint16_t CombineRegisters(RegisterPair pair) const;
