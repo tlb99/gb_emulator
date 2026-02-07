@@ -8,6 +8,7 @@
 #include <cstdint>
 #include <unordered_map>
 
+#include "graphics/ppu.h"
 #include "memory/game.h"
 #include "memory/wram.h"
 
@@ -15,10 +16,10 @@
 
 class CPU {
 public:
-  explicit CPU(WRAM& memory, Game& game)
-  : game_(game), wram_(memory),
-    a_(0), f_(0), b_(0), c_(0), d_(0), e_(0), h_(0), l_(0),
-    pc_(0x0100), sp_(0), zero_(false), substraction_(false), half_carry_(false), carry_(false) {}
+  explicit CPU(WRAM& memory, Game& game, PPU& ppu)
+  : game_(game), wram_(memory), ppu_(ppu),
+    a_(0x01), f_(0xB0), b_(0xFF), c_(0x13), d_(0x00), e_(0xC1), h_(0x84), l_(0x03),
+    pc_(0x0100), sp_(0xFFFE), zero_(false), substraction_(false), half_carry_(false), carry_(false) {}
   void Cycle();
 
 private:
@@ -55,6 +56,9 @@ private:
 
   // 2-byte opcodes
   void LDn8(uint8_t& reg);
+  void LDHa8(const uint8_t& source);
+
+  void JRe8(const bool &condition);
 
   // 3-byte opcodes
   void LDn16(RegisterPair pair);
@@ -75,6 +79,7 @@ private:
 
   Game& game_;
   WRAM& wram_;
+  PPU ppu_;
 
   // 8-bit Registers
   uint8_t a_;

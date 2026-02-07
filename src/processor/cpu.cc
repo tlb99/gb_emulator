@@ -26,9 +26,16 @@ void CPU::Cycle() {
     case 0x06:
       LDn8(b_);
       break;
+    case 0x0D:
+      DECr8(c_);
+      break;
     // LD C, n8
     case 0x0E:
       LDn8(c_);
+      break;
+    // JR NZ, e8
+    case 0x20:
+      JRe8(!zero_);
       break;
     // LD HL, n16 -- Load the next two little-endian bytes into registers H and L
     case 0x21:
@@ -38,6 +45,10 @@ void CPU::Cycle() {
     case 0x32:
       LDr16r8(RegisterPair::HL, a_);
       Dr16(RegisterPair::HL);
+      break;
+    // LD A, n8
+    case 0x3E:
+      LDn8(a_);
       break;
     // XOR A, A -- XOR register A with itself
     case 0xAF:
@@ -51,6 +62,13 @@ void CPU::Cycle() {
       pc_ = CombineBytes(hi, lo);
       break;
     }
+    // LDH [a8], A
+    case 0xE0:
+      LDHa8(a_);
+      break;
+    // DI -- TODO once input is implemented
+    case 0xF3:
+      break;
     // RST $38
     case 0xFF: {
       break;
@@ -75,6 +93,21 @@ void CPU::LDn8(uint8_t& reg) {
   const uint8_t byte = game_.ROM()[pc_];
   reg = byte;
   ++pc_;
+}
+
+// TODO implement I/O range manipulation
+void CPU::LDHa8(const uint8_t& source) {
+  const uint8_t offset = game_.ROM()[pc_];
+  //wram_.Write(source, 0xFF00 + offset);
+  ++pc_;
+}
+
+void CPU::JRe8(const bool& condition) {
+  if (!condition) {
+    ++pc_;
+    return;
+  }
+  pc_ += static_cast<int8_t>(game_.ROM()[pc_]);
 }
 
 void CPU::LDn16(const RegisterPair pair) {
@@ -109,7 +142,7 @@ void CPU::SUBr8(uint8_t& left_reg, const uint8_t& right_reg) {
   // Handle underflow case
   if (left_reg < right_reg) {
     half_carry_ = true;
-    left_reg = 0xFF - right_reg + 1;
+    left_reg = 0xFF + (left_reg - right_reg) + 1;
   } else {
     left_reg -= right_reg;
   }
