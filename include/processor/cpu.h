@@ -82,7 +82,7 @@ private:
 
   Game& game_;
   WRAM& wram_;
-  PPU ppu_;
+  PPU& ppu_;
 
   // 8-bit Registers
   uint8_t a_;
