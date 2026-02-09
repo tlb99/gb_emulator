@@ -56,7 +56,10 @@ private:
 
   // 2-byte opcodes
   void LDn8(uint8_t& reg);
-  void LDHa8(const uint8_t& source);
+  void LDHa8r8(const uint8_t& source);
+  void LDHr8a8(uint8_t &destination);
+
+  void CPn8(const uint8_t& source);
 
   void JRe8(const bool &condition);
 

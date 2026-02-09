@@ -64,10 +64,18 @@ void CPU::Cycle() {
     }
     // LDH [a8], A
     case 0xE0:
-      LDHa8(a_);
+      LDHa8r8(a_);
+      break;
+    // LDH A, [a8]
+    case 0xF0:
+      LDHr8a8(a_);
       break;
     // DI -- TODO once input is implemented
     case 0xF3:
+      break;
+    // CP A, n8
+    case 0xFE:
+      CPn8(a_);
       break;
     // RST $38
     case 0xFF: {
@@ -96,11 +104,24 @@ void CPU::LDn8(uint8_t& reg) {
 }
 
 // TODO implement I/O range manipulation
-void CPU::LDHa8(const uint8_t& source) {
+void CPU::LDHa8r8(const uint8_t& source) {
   const uint8_t offset = game_.ROM()[pc_];
   //wram_.Write(source, 0xFF00 + offset);
   ++pc_;
 }
+
+// TODO once I/O is in too
+void CPU::LDHr8a8(uint8_t& destination) {
+  zero_ = true;
+  ++pc_;
+}
+
+void CPU::CPn8(const uint8_t& source) {
+  const uint8_t& right = game_.ROM()[pc_++];
+  uint8_t source_copy = source;
+  SUBr8(source_copy, right);
+}
+
 
 void CPU::JRe8(const bool& condition) {
   if (!condition) {
@@ -141,9 +162,10 @@ void CPU::SUBr8(uint8_t& left_reg, const uint8_t& right_reg) {
 
   // Handle underflow case
   if (left_reg < right_reg) {
-    half_carry_ = true;
+    carry_ = true;
     left_reg = 0xFF + (left_reg - right_reg) + 1;
   } else {
+    half_carry_ = ((left_reg & 0xF0) - (right_reg & 0xF0) & 0xF0) == 0;
     left_reg -= right_reg;
   }
 
