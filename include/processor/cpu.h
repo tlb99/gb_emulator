@@ -20,7 +20,24 @@ public:
   : game_(game), wram_(memory), ppu_(ppu),
     a_(0x01), f_(0xB0), b_(0xFF), c_(0x13), d_(0x00), e_(0xC1), h_(0x84), l_(0x03),
     pc_(0x0100), sp_(0xFFFE), zero_(false), substraction_(false), half_carry_(false), carry_(false) {}
+
   void Cycle();
+
+  // Register getters
+  [[nodiscard]] const uint8_t& A() const { return a_; }
+  [[nodiscard]] const uint8_t& F() const { return f_; }
+  [[nodiscard]] const uint8_t& B() const { return b_; }
+  [[nodiscard]] const uint8_t& C() const { return c_; }
+  [[nodiscard]] const uint8_t& D() const { return d_; }
+  [[nodiscard]] const uint8_t& E() const { return e_; }
+  [[nodiscard]] const uint8_t& H() const { return h_; }
+  [[nodiscard]] const uint8_t& L() const { return l_; }
+  [[nodiscard]] const uint16_t& PC() const { return pc_; }
+  [[nodiscard]] const uint16_t& SP() const { return sp_; }
+  [[nodiscard]] const bool& ZERO() const { return zero_; }
+  [[nodiscard]] const bool& SUBSTRACTION() const { return substraction_; }
+  [[nodiscard]] const bool& HALF_CARRY() const { return half_carry_; }
+  [[nodiscard]] const bool& CARRY() const { return carry_; }
 
 private:
   enum class RegisterPair {
