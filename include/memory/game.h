@@ -13,6 +13,7 @@ public:
   bool LoadFromFile(const std::string& game_path);
   [[nodiscard]] bool IsGameLoaded() const { return is_game_loaded_; }
   [[nodiscard]] const std::vector<uint8_t>& ROM() const { return rom_; }
+  void LoadFromBuffer(const std::vector<uint8_t>& buffer) { rom_ = buffer; is_game_loaded_ = true; }
 
 private:
   bool is_game_loaded_;
