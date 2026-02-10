@@ -165,7 +165,7 @@ void CPU::SUBr8(uint8_t& left_reg, const uint8_t& right_reg) {
     carry_ = true;
     left_reg = 0xFF + (left_reg - right_reg) + 1;
   } else {
-    half_carry_ = ((left_reg & 0xF0) - (right_reg & 0xF0) & 0xF0) == 0;
+    half_carry_ = (left_reg & 0xF) == 0;
     left_reg -= right_reg;
   }
 
