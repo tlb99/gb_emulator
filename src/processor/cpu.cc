@@ -4,14 +4,30 @@
 
 #include "processor/cpu.h"
 
+
+
 #include <iostream>
 
+// TODO implement memory bus to determine which address corresponds to which component
 void CPU::Cycle() {
   // Fetch
   const uint8_t opcode = game_.ROM()[pc_++];
 
   std::cout << "Processing opcode 0x" << std::hex << static_cast<unsigned int>(opcode) <<
     " at ROM address 0x" << static_cast<unsigned int>(pc_ - 1) << std::endl;
+
+  // Check if opcode falls within special ranges
+  if (0x80 <= opcode && opcode <= 0x8E) {
+    const uint8_t last_digit = opcode & 0xF;
+    const uint8_t last_digit_mod = last_digit > 0x5 ? last_digit % 0x7 : last_digit;
+
+    if (last_digit == 0x6 || last_digit == 0xE)
+      ADDr8r8(a_, wram_.Read(CombineRegisters(RegisterPair::HL)));
+    else
+      ADDr8r8(a_, special_arithmetic_registers_.at(last_digit_mod));
+
+    return;
+  }
 
   // Decode & Execute
   switch (opcode) {
@@ -41,14 +57,26 @@ void CPU::Cycle() {
     case 0x21:
       LDn16(RegisterPair::HL);
       break;
+    // LD SP, n16
+    case 0x31:
+      LDr16n16(sp_);
+      break;
     // LD [HL-], A
     case 0x32:
       LDr16r8(RegisterPair::HL, a_);
       Dr16(RegisterPair::HL);
       break;
+    // LD [HL], n8
+    case 0x36:
+      LDr8n8(RegisterPair::HL);
+      break;
     // LD A, n8
     case 0x3E:
       LDn8(a_);
+      break;
+    // LD B, B
+    case 0x40:
+      LDr8r8(b_,b_);
       break;
     // XOR A, A -- XOR register A with itself
     case 0xAF:
@@ -65,6 +93,10 @@ void CPU::Cycle() {
     // LDH [a8], A
     case 0xE0:
       LDHa8r8(a_);
+      break;
+    // LD [a16], A
+    case 0xEA:
+      LDa16r8(a_);
       break;
     // LDH A, [a8]
     case 0xF0:
@@ -97,22 +129,41 @@ void CPU::DECr8(uint8_t& reg) {
   SUBr8(reg, 1);
 }
 
+void CPU::LDa16r8(const uint8_t& reg) {
+  const uint8_t byte1 = game_.ROM()[pc_];
+  const uint8_t byte2 = game_.ROM()[pc_ + 1];
+
+  const uint16_t address = CombineBytes(byte2, byte1);
+  wram_.Write(reg, address);
+
+  pc_ += 2;
+}
+
+void CPU::LDr8n8(RegisterPair pair) {
+  const uint8_t byte = game_.ROM()[pc_++];
+
+  wram_.Write(byte, CombineRegisters(pair));
+}
+
+void CPU::LDr8r8(uint8_t& destination, const uint8_t& source) {
+  destination = source;
+}
+
 void CPU::LDn8(uint8_t& reg) {
   const uint8_t byte = game_.ROM()[pc_];
   reg = byte;
   ++pc_;
 }
 
-// TODO implement I/O range manipulation
 void CPU::LDHa8r8(const uint8_t& source) {
-  const uint8_t offset = game_.ROM()[pc_];
-  //wram_.Write(source, 0xFF00 + offset);
-  ++pc_;
+  const uint8_t offset = game_.ROM()[pc_++];
+  wram_.Write(source, 0xFF00 + offset);
 }
 
 // TODO once I/O is in too
 void CPU::LDHr8a8(uint8_t& destination) {
   zero_ = true;
+  destination = 0x94; // hardcoded value for now, since tetris seems to expect A to be this value
   ++pc_;
 }
 
@@ -143,6 +194,15 @@ void CPU::LDn16(const RegisterPair pair) {
   pc_+=2;
 }
 
+void CPU::LDr16n16(uint16_t &reg) {
+  const uint8_t lo = game_.ROM()[pc_];
+  const uint8_t hi = game_.ROM()[pc_ + 1];
+
+  reg = CombineBytes(hi, lo);
+  pc_+=2;
+}
+
+
 void CPU::Dr16(const RegisterPair pair) const {
   // If decrementing lo leads to a decrease in hi, handle that, else return with a simple decrement to lo
   if (auto [hi, lo] = register_pairs_.at(pair); lo == 0) {
@@ -155,6 +215,16 @@ void CPU::Dr16(const RegisterPair pair) const {
   } else {
     --lo;
   }
+}
+
+void CPU::ADDr8r8(uint8_t& left_reg, const uint8_t& right_reg) {
+  substraction_ = false;
+
+  carry_ = right_reg <= 0xFF - left_reg;
+  half_carry_ = ((right_reg & 0xF) + (left_reg & 0xF) & 0x10) == 1;
+
+  left_reg += right_reg;
+  zero_ = left_reg == 0;
 }
 
 void CPU::SUBr8(uint8_t& left_reg, const uint8_t& right_reg) {

@@ -54,6 +54,15 @@ private:
     {RegisterPair::HL, {h_, l_}}
   };
 
+  const std::unordered_map<uint8_t, uint8_t&> special_arithmetic_registers_ = {
+    {0, b_},
+    {1, c_},
+    {2, d_},
+    {3, e_},
+    {4, h_},
+    {5, l_},
+  };
+
   /* 1-byte opcodes */
 
   /**
@@ -71,6 +80,9 @@ private:
   // Decrements 8-bit register
   void DECr8(uint8_t& reg);
 
+  void LDr8n8(RegisterPair pair);
+  static void LDr8r8(uint8_t& destination, const uint8_t& source);
+
   // 2-byte opcodes
   void LDn8(uint8_t& reg);
   void LDHa8r8(const uint8_t& source);
@@ -83,10 +95,14 @@ private:
   // 3-byte opcodes
   void LDn16(RegisterPair pair);
 
+  void LDr16n16(uint16_t &reg);
+  void LDa16r8(const uint8_t& reg);
   // Decrements 16-bit register
   void Dr16(RegisterPair pair) const;
 
   /* ALU operations */
+
+  void ADDr8r8(uint8_t& left_reg, const uint8_t& right_reg);
 
   // Subtract two registers from one another
   void SUBr8(uint8_t& left_reg, const uint8_t& right_reg);
