@@ -6,6 +6,7 @@
 #define GB_EMULATOR_CPU_H
 
 #include <cstdint>
+#include <functional>
 #include <unordered_map>
 
 #include "graphics/ppu.h"
@@ -63,6 +64,14 @@ private:
     {5, l_},
   };
 
+  using ArithmeticFunction = std::function<void(uint8_t&, const uint8_t&)>;
+
+  const std::vector<std::pair<std::pair<uint8_t, uint8_t>, ArithmeticFunction>> arithmetic_functions_ = {
+    {{0x80, 0x87}, [this](uint8_t& left, const uint8_t& right) { ADDr8r8(left, right); }},
+    {{0x88, 0x8E}, [this](uint8_t& left, const uint8_t& right) { ADCr8r8(left, right); }},
+    {{0x90, 0x97}, [this](uint8_t& left, const uint8_t& right) { SUBr8(left, right); }},
+};
+
   /* 1-byte opcodes */
 
   /**
@@ -103,6 +112,7 @@ private:
   /* ALU operations */
 
   void ADDr8r8(uint8_t& left_reg, const uint8_t& right_reg);
+  void ADCr8r8(uint8_t& left_reg, const uint8_t& right_reg);
 
   // Subtract two registers from one another
   void SUBr8(uint8_t& left_reg, const uint8_t& right_reg);

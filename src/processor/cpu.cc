@@ -17,14 +17,18 @@ void CPU::Cycle() {
     " at ROM address 0x" << static_cast<unsigned int>(pc_ - 1) << std::endl;
 
   // Check if opcode falls within special ranges
-  if (0x80 <= opcode && opcode <= 0x8E) {
+  for (const auto& [ranges, func] : arithmetic_functions_) {
+    if (auto [start, end] = ranges; !(start <= opcode && opcode <= end)) continue;
+
     const uint8_t last_digit = opcode & 0xF;
-    const uint8_t last_digit_mod = last_digit > 0x5 ? last_digit % 0x7 : last_digit;
+    const uint8_t last_digit_mod = last_digit > 0x7 ? last_digit - 0x8 : last_digit;
 
     if (last_digit == 0x6 || last_digit == 0xE)
-      ADDr8r8(a_, wram_.Read(CombineRegisters(RegisterPair::HL)));
+      func(a_, wram_.Read(CombineRegisters(RegisterPair::HL)));
+    else if (last_digit == 0x7 || last_digit == 0xF)
+      func(a_, a_);
     else
-      ADDr8r8(a_, special_arithmetic_registers_.at(last_digit_mod));
+      func(a_, special_arithmetic_registers_.at(last_digit_mod));
 
     return;
   }
@@ -220,10 +224,21 @@ void CPU::Dr16(const RegisterPair pair) const {
 void CPU::ADDr8r8(uint8_t& left_reg, const uint8_t& right_reg) {
   substraction_ = false;
 
-  carry_ = right_reg <= 0xFF - left_reg;
-  half_carry_ = ((right_reg & 0xF) + (left_reg & 0xF) & 0x10) == 1;
+  carry_ = right_reg > 0xFF - left_reg;
+  half_carry_ = (left_reg & 0xF) + (right_reg & 0xF) > 0xF;
 
   left_reg += right_reg;
+  zero_ = left_reg == 0;
+}
+
+void CPU::ADCr8r8(uint8_t& left_reg, const uint8_t& right_reg) {
+  substraction_ = false;
+  const uint8_t c = carry_ ? 1 : 0;
+
+  carry_ = right_reg > 0xFF - left_reg - c;
+  half_carry_ = (left_reg & 0xF) + (right_reg & 0xF) + c > 0xF;
+
+  left_reg += right_reg + c;
   zero_ = left_reg == 0;
 }
 
