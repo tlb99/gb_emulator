@@ -67,9 +67,14 @@ private:
   using ArithmeticFunction = std::function<void(uint8_t&, const uint8_t&)>;
 
   const std::vector<std::pair<std::pair<uint8_t, uint8_t>, ArithmeticFunction>> arithmetic_functions_ = {
-    {{0x80, 0x87}, [this](uint8_t& left, const uint8_t& right) { ADDr8r8(left, right); }},
-    {{0x88, 0x8E}, [this](uint8_t& left, const uint8_t& right) { ADCr8r8(left, right); }},
+    {{0x80, 0x87}, [this](uint8_t& left, const uint8_t& right) { ADDr8(left, right); }},
+    {{0x88, 0x8E}, [this](uint8_t& left, const uint8_t& right) { ADCr8(left, right); }},
     {{0x90, 0x97}, [this](uint8_t& left, const uint8_t& right) { SUBr8(left, right); }},
+    {{0x98, 0x9F}, [this](uint8_t& left, const uint8_t& right) { SBCr8(left, right); }},
+    {{0xA0, 0xA7}, [this](uint8_t& left, const uint8_t& right) { ANDr8(left, right); }},
+    {{0xA8, 0xAF}, [this](uint8_t& left, const uint8_t& right) { XORr8(left, right); }},
+    {{0xB0, 0xB7}, [this](uint8_t& left, const uint8_t& right) { ORr8(left, right);  }},
+    {{0xB8, 0xBF}, [this](const uint8_t& left, const uint8_t& right) { CPr8(left, right);  }},
 };
 
   /* 1-byte opcodes */
@@ -92,6 +97,8 @@ private:
   void LDr8n8(RegisterPair pair);
   static void LDr8r8(uint8_t& destination, const uint8_t& source);
 
+  void CPr8(const uint8_t& left_reg, const uint8_t& right_reg);
+
   // 2-byte opcodes
   void LDn8(uint8_t& reg);
   void LDHa8r8(const uint8_t& source);
@@ -111,11 +118,16 @@ private:
 
   /* ALU operations */
 
-  void ADDr8r8(uint8_t& left_reg, const uint8_t& right_reg);
-  void ADCr8r8(uint8_t& left_reg, const uint8_t& right_reg);
+  void ADDr8(uint8_t& left_reg, const uint8_t& right_reg);
+  void ADCr8(uint8_t& left_reg, const uint8_t& right_reg);
 
-  // Subtract two registers from one another
   void SUBr8(uint8_t& left_reg, const uint8_t& right_reg);
+  void SBCr8(uint8_t& left_reg, const uint8_t& right_reg);
+
+  void ANDr8(uint8_t& left_reg, const uint8_t& right_reg);
+
+  void ORr8(uint8_t& left_reg, const uint8_t& right_reg);
+  void XORr8(uint8_t& left_reg, const uint8_t& right_reg);
 
   // Helper function to combine two 8-bit registers into a 16-bit value
   [[nodiscard]] uint16_t CombineRegisters(RegisterPair pair) const;

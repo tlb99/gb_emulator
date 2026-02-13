@@ -82,10 +82,6 @@ void CPU::Cycle() {
     case 0x40:
       LDr8r8(b_,b_);
       break;
-    // XOR A, A -- XOR register A with itself
-    case 0xAF:
-      a_ ^= a_;
-      break;
     // JP a16 -- Jump to little-endian 16-bit address
     case 0xC3: {
       // Get the next two bytes, then set PC to the combo of these two bytes by bit shifting to the left
@@ -151,6 +147,11 @@ void CPU::LDr8n8(RegisterPair pair) {
 
 void CPU::LDr8r8(uint8_t& destination, const uint8_t& source) {
   destination = source;
+}
+
+void CPU::CPr8(const uint8_t& left_reg, const uint8_t& right_reg) {
+  uint8_t left_reg_copy = left_reg;
+  SUBr8(left_reg_copy, right_reg);
 }
 
 void CPU::LDn8(uint8_t& reg) {
@@ -221,7 +222,7 @@ void CPU::Dr16(const RegisterPair pair) const {
   }
 }
 
-void CPU::ADDr8r8(uint8_t& left_reg, const uint8_t& right_reg) {
+void CPU::ADDr8(uint8_t& left_reg, const uint8_t& right_reg) {
   substraction_ = false;
 
   carry_ = right_reg > 0xFF - left_reg;
@@ -231,7 +232,7 @@ void CPU::ADDr8r8(uint8_t& left_reg, const uint8_t& right_reg) {
   zero_ = left_reg == 0;
 }
 
-void CPU::ADCr8r8(uint8_t& left_reg, const uint8_t& right_reg) {
+void CPU::ADCr8(uint8_t& left_reg, const uint8_t& right_reg) {
   substraction_ = false;
   const uint8_t c = carry_ ? 1 : 0;
 
@@ -248,13 +249,54 @@ void CPU::SUBr8(uint8_t& left_reg, const uint8_t& right_reg) {
   // Handle underflow case
   if (left_reg < right_reg) {
     carry_ = true;
-    left_reg = 0xFF + (left_reg - right_reg) + 1;
   } else {
     half_carry_ = (left_reg & 0xF) == 0;
-    left_reg -= right_reg;
   }
 
+  left_reg -= right_reg;
   zero_ = left_reg == 0;
+}
+
+void CPU::SBCr8(uint8_t& left_reg, const uint8_t& right_reg) {
+  substraction_ = true;
+  const uint8_t c = carry_ ? 1 : 0;
+
+  // Handle underflow case
+  if (left_reg < right_reg + c) {
+    carry_ = true;
+  } else {
+    half_carry_ = (left_reg & 0xF) == 0;
+  }
+
+  left_reg -= right_reg - c;
+  zero_ = left_reg == 0;
+}
+
+void CPU::ANDr8(uint8_t& left_reg, const uint8_t& right_reg) {
+  left_reg &= right_reg;
+
+  zero_ = left_reg == 0;
+  substraction_ = false;
+  half_carry_ = true;
+  carry_ = false;
+}
+
+void CPU::ORr8(uint8_t& left_reg, const uint8_t& right_reg) {
+  left_reg |= right_reg;
+
+  zero_ = left_reg == 0;
+  substraction_ = false;
+  half_carry_ = false;
+  carry_ = false;
+}
+
+void CPU::XORr8(uint8_t& left_reg, const uint8_t& right_reg) {
+  left_reg ^= right_reg;
+
+  zero_ = left_reg == 0;
+  substraction_ = false;
+  half_carry_ = false;
+  carry_ = false;
 }
 
 uint16_t CPU::CombineRegisters(const RegisterPair pair) const {
