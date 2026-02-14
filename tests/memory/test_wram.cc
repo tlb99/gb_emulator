@@ -8,31 +8,31 @@
 
 TEST_CASE( "WRAM allocates empty vector", "[wram]" ) {
   const WRAM wram;
-  std::vector<uint8_t> empty_wram(WRAM::WRAM_SIZE);
+  std::vector<uint8_t> empty_wram(WRAM::SIZE);
 
-  REQUIRE(wram.GetWRAM() == empty_wram);
+  REQUIRE(wram.GetRAM() == empty_wram);
 }
 
 TEST_CASE( "WRAM.Write() writes value at starting Game Boy offset address", "[wram]" ) {
   WRAM wram;
   constexpr uint8_t value = 0xFF;
-  constexpr uint16_t address = WRAM::WRAM_START;
+  constexpr uint16_t address = WRAM::START;
 
   wram.Write(value, address);
 
   REQUIRE(wram.Read(address) == value);
-  REQUIRE(wram.GetWRAM()[address - WRAM::WRAM_START] == value);
+  REQUIRE(wram.GetRAM()[address - WRAM::START] == value);
 }
 
 TEST_CASE( "WRAM.Write() writes value at ending Game Boy offset address", "[wram]" ) {
   WRAM wram;
   constexpr uint8_t value = 0xFF;
-  constexpr uint16_t address = WRAM::WRAM_END;
+  constexpr uint16_t address = WRAM::END;
 
   wram.Write(value, address);
 
   REQUIRE(wram.Read(address) == value);
-  REQUIRE(wram.GetWRAM()[address - WRAM::WRAM_START] == value);
+  REQUIRE(wram.GetRAM()[address - WRAM::START] == value);
 }
 
 TEST_CASE( "WRAM.Write() does not write value below starting Game Boy offset address ", "[wram]" ) {
@@ -43,13 +43,13 @@ TEST_CASE( "WRAM.Write() does not write value below starting Game Boy offset add
   wram.Write(value, address);
 
   REQUIRE(wram.Read(address) != value);
-  REQUIRE(wram.GetWRAM()[address] != value);
+  REQUIRE(wram.GetRAM()[address] != value);
 }
 
 TEST_CASE( "WRAM.Write() does not write value above ending Game Boy offset address ", "[wram]" ) {
   WRAM wram;
   constexpr uint8_t value = 0xF0;
-  constexpr uint16_t address = WRAM::WRAM_END + 1;
+  constexpr uint16_t address = WRAM::END + 1;
 
   wram.Write(value, address);
 
