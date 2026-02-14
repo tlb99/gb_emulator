@@ -6,15 +6,15 @@
 
 
 
-#include <iostream>
+#include <spdlog/spdlog.h>
 
 // TODO implement memory bus to determine which address corresponds to which component
 void CPU::Cycle() {
   // Fetch
   const uint8_t opcode = game_.ROM()[pc_++];
 
-  std::cout << "Processing opcode 0x" << std::hex << static_cast<unsigned int>(opcode) <<
-    " at ROM address 0x" << static_cast<unsigned int>(pc_ - 1) << std::endl;
+  //spdlog::info( std::format("Processing opcode {:#04X} at ROM address {:#04X}", static_cast<unsigned int>(opcode),
+  //  static_cast<unsigned int>(pc_ - 1)));
 
   // Check if opcode falls within special ranges
   for (const auto& [ranges, func] : arithmetic_functions_) {
@@ -38,13 +38,25 @@ void CPU::Cycle() {
     // NOP -- Do nothing
     case 0x00:
       break;
+    // LD BC, n16
+    case 0x1:
+      LDn16(RegisterPair::BC);
+      break;
     // DEC B
     case 0x05:
       DECr8(b_);
       break;
-      // LD B, n8
+    // LD B, n8
     case 0x06:
       LDn8(b_);
+      break;
+    // DEC BC
+    case 0x0B:
+      DECr16(RegisterPair::BC);
+      break;
+      // INC C
+    case 0x0C:
+      ADDr8(c_, 1);
       break;
     case 0x0D:
       DECr8(c_);
@@ -61,6 +73,11 @@ void CPU::Cycle() {
     case 0x21:
       LDn16(RegisterPair::HL);
       break;
+    // LD A, [HL+]
+    case 0x2A:
+      LDr16r8( RegisterPair::HL, a_);
+      INCr16(RegisterPair::HL);
+      break;
     // LD SP, n16
     case 0x31:
       LDr16n16(sp_);
@@ -68,7 +85,7 @@ void CPU::Cycle() {
     // LD [HL-], A
     case 0x32:
       LDr16r8(RegisterPair::HL, a_);
-      Dr16(RegisterPair::HL);
+      DECr16(RegisterPair::HL);
       break;
     // LD [HL], n8
     case 0x36:
@@ -90,11 +107,26 @@ void CPU::Cycle() {
       pc_ = CombineBytes(hi, lo);
       break;
     }
+    // CALL a16
+    case 0xCD: {
+      const uint8_t lo = game_.ROM()[pc_];
+      const uint8_t hi = game_.ROM()[pc_ + 1];
+      auto [pc_hi, pc_lo] = SplitBytes(pc_);
+      hram_.Write(pc_lo, sp_);
+      hram_.Write(pc_hi, sp_ - 1);
+      --sp_;
+      pc_ = CombineBytes(hi, lo);
+      break;
+    }
     // LDH [a8], A
     case 0xE0:
       LDHa8r8(a_);
       break;
-    // LD [a16], A
+    // LDH [C], A
+    case 0xE2:
+      LDHr8r8(c_, a_);
+      break;
+      // LD [a16], A
     case 0xEA:
       LDa16r8(a_);
       break;
@@ -114,8 +146,7 @@ void CPU::Cycle() {
       break;
     }
     default:
-      std::cout << "Unimplemented opcode: 0x" << std::hex << static_cast<
-        unsigned int>(opcode) << std::endl;
+      spdlog::error( std::format("Unimplemented opcode: {:#X} at address {:#X}", static_cast<unsigned int>(opcode), pc_ - 1));
       exit(0);
   }
 
@@ -135,7 +166,7 @@ void CPU::LDa16r8(const uint8_t& reg) {
 
   const uint16_t address = CombineBytes(byte2, byte1);
   wram_.Write(reg, address);
-
+{}
   pc_ += 2;
 }
 
@@ -147,6 +178,10 @@ void CPU::LDr8n8(RegisterPair pair) {
 
 void CPU::LDr8r8(uint8_t& destination, const uint8_t& source) {
   destination = source;
+}
+
+void CPU::LDHr8r8(const uint8_t &source, const uint8_t &offset) {
+  wram_.Write(source, 0xFF00 + offset);
 }
 
 void CPU::CPr8(const uint8_t& left_reg, const uint8_t& right_reg) {
@@ -208,7 +243,7 @@ void CPU::LDr16n16(uint16_t &reg) {
 }
 
 
-void CPU::Dr16(const RegisterPair pair) const {
+void CPU::DECr16(const RegisterPair pair) const {
   // If decrementing lo leads to a decrease in hi, handle that, else return with a simple decrement to lo
   if (auto [hi, lo] = register_pairs_.at(pair); lo == 0) {
     // Throw exception if hi and lo are both 0
@@ -219,6 +254,15 @@ void CPU::Dr16(const RegisterPair pair) const {
     lo = 0xFF;
   } else {
     --lo;
+  }
+}
+
+void CPU::INCr16(const RegisterPair pair) const {
+  if (auto [hi, lo] = register_pairs_.at(pair); lo == 0xFF) {
+    ++hi;
+    lo = 0;
+  } else {
+    ++lo;
   }
 }
 
@@ -306,4 +350,8 @@ uint16_t CPU::CombineRegisters(const RegisterPair pair) const {
 
 uint16_t CPU::CombineBytes(const uint8_t& hi, const uint8_t& lo) {
   return static_cast<uint16_t>(hi) << 8 | lo;
+}
+
+std::pair<uint8_t, uint8_t> CPU::SplitBytes(const uint16_t& value) {
+  return {value & 0xF0, value & 0xF};
 }

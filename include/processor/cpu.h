@@ -12,13 +12,14 @@
 #include "graphics/ppu.h"
 #include "memory/game.h"
 #include "memory/wram.h"
+#include "memory/hram.h"
 
 
 
 class CPU {
 public:
-  explicit CPU(WRAM& memory, Game& game, PPU& ppu)
-  : game_(game), wram_(memory), ppu_(ppu),
+  explicit CPU(WRAM& memory, HRAM& hram, Game& game, PPU& ppu)
+  : game_(game), wram_(memory), hram_(hram), ppu_(ppu),
     a_(0x01), f_(0xB0), b_(0xFF), c_(0x13), d_(0x00), e_(0xC1), h_(0x84), l_(0x03),
     pc_(0x0100), sp_(0xFFFE), zero_(false), substraction_(false), half_carry_(false), carry_(false) {}
 
@@ -67,6 +68,12 @@ private:
   using ArithmeticFunction = std::function<void(uint8_t&, const uint8_t&)>;
 
   const std::vector<std::pair<std::pair<uint8_t, uint8_t>, ArithmeticFunction>> arithmetic_functions_ = {
+    {{0x40, 0x45}, [this](uint8_t& left, const uint8_t& right) { ADDr8(left, right); }},
+    {{0x46, 0x46}, [this](uint8_t& left, const uint8_t& right) { ADDr8(left, right); }},
+    {{0x47, 0x87}, [this](uint8_t& left, const uint8_t& right) { ADDr8(left, right); }},
+    {{0x80, 0x87}, [this](uint8_t& left, const uint8_t& right) { ADDr8(left, right); }},
+    {{0x80, 0x87}, [this](uint8_t& left, const uint8_t& right) { ADDr8(left, right); }},
+    {{0x80, 0x87}, [this](uint8_t& left, const uint8_t& right) { ADDr8(left, right); }},
     {{0x80, 0x87}, [this](uint8_t& left, const uint8_t& right) { ADDr8(left, right); }},
     {{0x88, 0x8E}, [this](uint8_t& left, const uint8_t& right) { ADCr8(left, right); }},
     {{0x90, 0x97}, [this](uint8_t& left, const uint8_t& right) { SUBr8(left, right); }},
@@ -96,6 +103,7 @@ private:
 
   void LDr8n8(RegisterPair pair);
   static void LDr8r8(uint8_t& destination, const uint8_t& source);
+  void LDHr8r8(const uint8_t &source, const uint8_t &offset);
 
   void CPr8(const uint8_t& left_reg, const uint8_t& right_reg);
 
@@ -113,8 +121,8 @@ private:
 
   void LDr16n16(uint16_t &reg);
   void LDa16r8(const uint8_t& reg);
-  // Decrements 16-bit register
-  void Dr16(RegisterPair pair) const;
+  void DECr16(RegisterPair pair) const;
+  void INCr16(RegisterPair pair) const;
 
   /* ALU operations */
 
@@ -135,8 +143,11 @@ private:
   // Helper function to combine two bytes into a 16-bit value
   static uint16_t CombineBytes(const uint8_t& hi, const uint8_t& lo) ;
 
+  static std::pair<uint8_t, uint8_t> SplitBytes(const uint16_t& value) ;
+
   Game& game_;
   WRAM& wram_;
+  HRAM hram_;
   PPU& ppu_;
 
   // 8-bit Registers
