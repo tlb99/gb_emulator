@@ -7,6 +7,7 @@
 
 #include <cstdint>
 #include <functional>
+#include <map>
 #include <unordered_map>
 
 #include "graphics/ppu.h"
@@ -22,6 +23,7 @@ public:
   : game_(game), wram_(memory), hram_(hram), ppu_(ppu),
     a_(0x01), f_(0xB0), b_(0xFF), c_(0x13), d_(0x00), e_(0xC1), h_(0x84), l_(0x03),
     pc_(0x0100), sp_(0xFFFE), zero_(false), substraction_(false), half_carry_(false), carry_(false) {}
+
 
   void Cycle();
 
@@ -56,7 +58,7 @@ private:
     {RegisterPair::HL, {h_, l_}}
   };
 
-  const std::unordered_map<uint8_t, uint8_t&> special_arithmetic_registers_ = {
+  const std::unordered_map<uint8_t, uint8_t&> register_ranges_ = {
     {0, b_},
     {1, c_},
     {2, d_},
@@ -65,15 +67,26 @@ private:
     {5, l_},
   };
 
+  const std::map<uint8_t, uint8_t&> left_register_ranges_ = {
+    {0x40, b_},
+    {0x48, c_},
+    {0x50, d_},
+    {0x58, e_},
+    {0x60, h_},
+    {0x68, l_},
+    {0x78, a_},
+  };
+
   using ArithmeticFunction = std::function<void(uint8_t&, const uint8_t&)>;
 
   const std::vector<std::pair<std::pair<uint8_t, uint8_t>, ArithmeticFunction>> arithmetic_functions_ = {
-    {{0x40, 0x45}, [this](uint8_t& left, const uint8_t& right) { ADDr8(left, right); }},
-    {{0x46, 0x46}, [this](uint8_t& left, const uint8_t& right) { ADDr8(left, right); }},
-    {{0x47, 0x87}, [this](uint8_t& left, const uint8_t& right) { ADDr8(left, right); }},
-    {{0x80, 0x87}, [this](uint8_t& left, const uint8_t& right) { ADDr8(left, right); }},
-    {{0x80, 0x87}, [this](uint8_t& left, const uint8_t& right) { ADDr8(left, right); }},
-    {{0x80, 0x87}, [this](uint8_t& left, const uint8_t& right) { ADDr8(left, right); }},
+    {{0x40, 0x45}, [](uint8_t& left, const uint8_t& right) { LDr8r8(left, right); }},
+    {{0x47, 0x4D}, [](uint8_t& left, const uint8_t& right) { LDr8r8(left, right); }},
+    {{0x50, 0x55}, [](uint8_t& left, const uint8_t& right) { LDr8r8(left, right); }},
+    {{0x57, 0x5D}, [](uint8_t& left, const uint8_t& right) { LDr8r8(left, right); }},
+    {{0x60, 0x65}, [](uint8_t& left, const uint8_t& right) { LDr8r8(left, right); }},
+    {{0x67, 0x6D}, [](uint8_t& left, const uint8_t& right) { LDr8r8(left, right); }},
+    {{0x78, 0x7D}, [](uint8_t& left, const uint8_t& right) { LDr8r8(left, right); }},
     {{0x80, 0x87}, [this](uint8_t& left, const uint8_t& right) { ADDr8(left, right); }},
     {{0x88, 0x8E}, [this](uint8_t& left, const uint8_t& right) { ADCr8(left, right); }},
     {{0x90, 0x97}, [this](uint8_t& left, const uint8_t& right) { SUBr8(left, right); }},
@@ -106,6 +119,7 @@ private:
   void LDHr8r8(const uint8_t &source, const uint8_t &offset);
 
   void CPr8(const uint8_t& left_reg, const uint8_t& right_reg);
+  void INCr8(uint8_t &reg);
 
   // 2-byte opcodes
   void LDn8(uint8_t& reg);

@@ -13,8 +13,8 @@ void CPU::Cycle() {
   // Fetch
   const uint8_t opcode = game_.ROM()[pc_++];
 
-  //spdlog::info( std::format("Processing opcode {:#04X} at ROM address {:#04X}", static_cast<unsigned int>(opcode),
-  //  static_cast<unsigned int>(pc_ - 1)));
+  spdlog::info( std::format("Processing opcode {:#04X} at ROM address {:#04X}", static_cast<unsigned int>(opcode),
+    static_cast<unsigned int>(pc_ - 1)));
 
   // Check if opcode falls within special ranges
   for (const auto& [ranges, func] : arithmetic_functions_) {
@@ -22,13 +22,18 @@ void CPU::Cycle() {
 
     const uint8_t last_digit = opcode & 0xF;
     const uint8_t last_digit_mod = last_digit > 0x7 ? last_digit - 0x8 : last_digit;
+    auto it = left_register_ranges_.lower_bound(opcode);
+
+    --it;
+
+    uint8_t& left_register = it->second;
 
     if (last_digit == 0x6 || last_digit == 0xE)
-      func(a_, wram_.Read(CombineRegisters(RegisterPair::HL)));
+      func(left_register, wram_.Read(CombineRegisters(RegisterPair::HL)));
     else if (last_digit == 0x7 || last_digit == 0xF)
-      func(a_, a_);
+      func(left_register, a_);
     else
-      func(a_, special_arithmetic_registers_.at(last_digit_mod));
+      func(left_register, register_ranges_.at(last_digit_mod));
 
     return;
   }
@@ -42,7 +47,11 @@ void CPU::Cycle() {
     case 0x1:
       LDn16(RegisterPair::BC);
       break;
-    // DEC B
+    // INC B
+    case 0x04:
+      INCr8(b_);
+      break;
+      // DEC B
     case 0x05:
       DECr8(b_);
       break;
@@ -157,7 +166,10 @@ void CPU::LDr16r8(const RegisterPair pair, const uint8_t &source) const {
 }
 
 void CPU::DECr8(uint8_t& reg) {
-  SUBr8(reg, 1);
+  substraction_ = true;
+  half_carry_ = (reg & 0x10) == 1;
+  --reg;
+  zero_ = reg == 0;
 }
 
 void CPU::LDa16r8(const uint8_t& reg) {
@@ -187,6 +199,13 @@ void CPU::LDHr8r8(const uint8_t &source, const uint8_t &offset) {
 void CPU::CPr8(const uint8_t& left_reg, const uint8_t& right_reg) {
   uint8_t left_reg_copy = left_reg;
   SUBr8(left_reg_copy, right_reg);
+}
+
+void CPU::INCr8(uint8_t &reg) {
+  ++reg;
+  substraction_ = false;
+  half_carry_ = (reg & 0xF) == 0;
+  zero_ = reg == 0;
 }
 
 void CPU::LDn8(uint8_t& reg) {
@@ -246,10 +265,6 @@ void CPU::LDr16n16(uint16_t &reg) {
 void CPU::DECr16(const RegisterPair pair) const {
   // If decrementing lo leads to a decrease in hi, handle that, else return with a simple decrement to lo
   if (auto [hi, lo] = register_pairs_.at(pair); lo == 0) {
-    // Throw exception if hi and lo are both 0
-    if (hi == 0)
-      throw std::runtime_error("Attempted to decrement register below 0");
-
     --hi;
     lo = 0xFF;
   } else {
