@@ -135,6 +135,7 @@ private:
   void INCr8(uint8_t &reg);
 
   void RET();
+  void CPL();
 
   // 2-byte opcodes
   void LDn8(uint8_t& reg);
@@ -144,6 +145,8 @@ private:
   void CPn8(const uint8_t& source);
 
   void JRe8(const bool &condition);
+
+  void ANDr8n8(uint8_t& reg);
 
   // 3-byte opcodes
   void LDn16(RegisterPair pair);

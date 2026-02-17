@@ -91,7 +91,11 @@ void CPU::Cycle() {
       LDr16r8( RegisterPair::HL, a_);
       INCr16(RegisterPair::HL);
       break;
-    // LD SP, n16
+    // CPL
+    case 0x2F:
+      CPL();
+      break;
+      // LD SP, n16
     case 0x31:
       LDr16n16(sp_);
       break;
@@ -145,6 +149,10 @@ void CPU::Cycle() {
     case 0xE2:
       LDHr8r8(a_, c_);
       break;
+    // AND A, n8
+    case 0xE6:
+      ANDr8n8(a_);
+      break;
       // LD [a16], A
     case 0xEA:
       LDa16r8(a_);
@@ -153,7 +161,9 @@ void CPU::Cycle() {
     case 0xF0:
       LDHr8a8(a_);
       break;
-    // DI -- TODO once input is implemented
+    // EI -- TODO
+    case 0xFB:
+      // DI -- TODO once input is implemented
     case 0xF3:
       break;
     // CP A, n8
@@ -220,6 +230,12 @@ void CPU::RET() {
   pc_ = CombineBytes(hi, lo);
 }
 
+void CPU::CPL() {
+  a_ = ~a_;
+  substraction_ = false;
+  half_carry_ = true;
+}
+
 void CPU::LDn8(uint8_t& reg) {
   const uint8_t byte = game_.ROM()[pc_];
   reg = byte;
@@ -251,6 +267,11 @@ void CPU::JRe8(const bool& condition) {
     return;
   }
   pc_ += static_cast<int8_t>(game_.ROM()[pc_]) + 1;
+}
+
+void CPU::ANDr8n8(uint8_t& reg) {
+  const uint8_t& byte = game_.ROM()[pc_++];
+  ANDr8(reg, byte);
 }
 
 void CPU::LDn16(const RegisterPair pair) {
