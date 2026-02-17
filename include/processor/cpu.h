@@ -22,7 +22,12 @@ public:
   explicit CPU(WRAM& memory, HRAM& hram, Game& game, PPU& ppu)
   : game_(game), wram_(memory), hram_(hram), ppu_(ppu),
     a_(0x01), f_(0x00), b_(0xFF), c_(0x13), d_(0x00), e_(0xC1), h_(0x84), l_(0x03),
-    pc_(0x0100), sp_(0xFFFE), zero_(false), substraction_(false), half_carry_(false), carry_(false) {}
+    pc_(0x0100), sp_(0xFFFE), zero_(false), substraction_(false), half_carry_(false), carry_(false) {
+    memory_bus_map_ = {
+      {WRAM::START, WRAM::END, &wram_},
+      {HRAM::START, HRAM::END, &hram_}
+    };
+  }
 
 
   void Cycle();
@@ -97,10 +102,13 @@ private:
     {{0xB8, 0xBF}, [this](const uint8_t& left, const uint8_t& right) { CPr8(left, right);  }},
   };
 
-  const std::map<std::pair<uint16_t, uint16_t>, RAM*> memory_bus_map_ = {
-    {{WRAM::START, WRAM::END}, &wram_},
-    {{HRAM::START, HRAM::END}, &hram_},
+  struct MemoryRange {
+    uint16_t start;
+    uint16_t end;
+    RAM* ram_ptr;
   };
+
+  std::vector<MemoryRange> memory_bus_map_;
 
   /* 1-byte opcodes */
 
@@ -160,7 +168,7 @@ private:
 
   [[nodiscard]] RAM* get_memory_bus_(const uint16_t& address) const;
   void memory_bus_write_(const uint8_t& value, const uint16_t& address) const;
-  [[nodiscard]] uint8_t memory_bus_read_(const uint8_t& address) const;
+  [[nodiscard]] uint8_t memory_bus_read_(const uint16_t &address) const;
 
   // Helper function to combine two 8-bit registers into a 16-bit value
   [[nodiscard]] uint16_t CombineRegisters(RegisterPair pair) const;

@@ -371,11 +371,10 @@ void CPU::XORr8(uint8_t& left_reg, const uint8_t& right_reg) {
 }
 
 RAM* CPU::get_memory_bus_(const uint16_t& address) const {
-  for (auto const& [ranges, ram] : memory_bus_map_) {
-    auto const& [start, end] = ranges;
-    if (!(start <= address && address <= end)) continue;
-
-    return ram;
+  for (const auto& range : memory_bus_map_) {
+    if (range.start <= address && address <= range.end) {
+      return range.ram_ptr;
+    }
   }
   return nullptr;
 }
@@ -386,7 +385,7 @@ void CPU::memory_bus_write_(const uint8_t& value, const uint16_t& address) const
   ram->Write(value, address);
 }
 
-uint8_t CPU::memory_bus_read_(const uint8_t& address) const {
+uint8_t CPU::memory_bus_read_(const uint16_t &address) const {
   const RAM* ram = get_memory_bus_(address);
 
   return ram->Read(address);
