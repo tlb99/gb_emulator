@@ -21,7 +21,7 @@ class CPU {
 public:
   explicit CPU(WRAM& memory, HRAM& hram, Game& game, PPU& ppu)
   : game_(game), wram_(memory), hram_(hram), ppu_(ppu),
-    a_(0x01), f_(0xB0), b_(0xFF), c_(0x13), d_(0x00), e_(0xC1), h_(0x84), l_(0x03),
+    a_(0x01), f_(0x00), b_(0xFF), c_(0x13), d_(0x00), e_(0xC1), h_(0x84), l_(0x03),
     pc_(0x0100), sp_(0xFFFE), zero_(false), substraction_(false), half_carry_(false), carry_(false) {}
 
 
@@ -123,7 +123,7 @@ private:
 
   // 2-byte opcodes
   void LDn8(uint8_t& reg);
-  void LDHa8r8(const uint8_t& source);
+  void LDHn16r8(const uint8_t& source);
   void LDHr8a8(uint8_t &destination);
 
   void CPn8(const uint8_t& source);
@@ -161,7 +161,7 @@ private:
 
   Game& game_;
   WRAM& wram_;
-  HRAM hram_;
+  HRAM& hram_;
   PPU& ppu_;
 
   // 8-bit Registers

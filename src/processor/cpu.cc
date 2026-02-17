@@ -24,7 +24,10 @@ void CPU::Cycle() {
     const uint8_t last_digit_mod = last_digit > 0x7 ? last_digit - 0x8 : last_digit;
     auto it = left_register_ranges_.lower_bound(opcode);
 
-    --it;
+    // Exact opcode not found
+    if (it == left_register_ranges_.end()) {
+      --it;
+    }
 
     uint8_t& left_register = it->second;
 
@@ -51,7 +54,7 @@ void CPU::Cycle() {
     case 0x04:
       INCr8(b_);
       break;
-      // DEC B
+    // DEC B
     case 0x05:
       DECr8(b_);
       break;
@@ -63,10 +66,11 @@ void CPU::Cycle() {
     case 0x0B:
       DECr16(RegisterPair::BC);
       break;
-      // INC C
+    // INC C
     case 0x0C:
-      ADDr8(c_, 1);
+      INCr8(c_);
       break;
+    // DEC C
     case 0x0D:
       DECr8(c_);
       break;
@@ -120,20 +124,21 @@ void CPU::Cycle() {
     case 0xCD: {
       const uint8_t lo = game_.ROM()[pc_];
       const uint8_t hi = game_.ROM()[pc_ + 1];
+      pc_+=2;
       auto [pc_hi, pc_lo] = SplitBytes(pc_);
-      hram_.Write(pc_lo, sp_);
-      hram_.Write(pc_hi, sp_ - 1);
+      hram_.Write(pc_hi, sp_);
+      hram_.Write(pc_lo, sp_ - 1);
       --sp_;
       pc_ = CombineBytes(hi, lo);
       break;
     }
     // LDH [a8], A
     case 0xE0:
-      LDHa8r8(a_);
+      LDHn16r8(a_);
       break;
     // LDH [C], A
     case 0xE2:
-      LDHr8r8(c_, a_);
+      LDHr8r8(a_, c_);
       break;
       // LD [a16], A
     case 0xEA:
@@ -150,10 +155,6 @@ void CPU::Cycle() {
     case 0xFE:
       CPn8(a_);
       break;
-    // RST $38
-    case 0xFF: {
-      break;
-    }
     default:
       spdlog::error( std::format("Unimplemented opcode: {:#X} at address {:#X}", static_cast<unsigned int>(opcode), pc_ - 1));
       exit(0);
@@ -173,12 +174,11 @@ void CPU::DECr8(uint8_t& reg) {
 }
 
 void CPU::LDa16r8(const uint8_t& reg) {
-  const uint8_t byte1 = game_.ROM()[pc_];
-  const uint8_t byte2 = game_.ROM()[pc_ + 1];
+  const uint8_t lo = game_.ROM()[pc_];
+  const uint8_t hi = game_.ROM()[pc_ + 1];
 
-  const uint16_t address = CombineBytes(byte2, byte1);
+  const uint16_t address = CombineBytes(hi, lo);
   wram_.Write(reg, address);
-{}
   pc_ += 2;
 }
 
@@ -214,7 +214,7 @@ void CPU::LDn8(uint8_t& reg) {
   ++pc_;
 }
 
-void CPU::LDHa8r8(const uint8_t& source) {
+void CPU::LDHn16r8(const uint8_t& source) {
   const uint8_t offset = game_.ROM()[pc_++];
   wram_.Write(source, 0xFF00 + offset);
 }
@@ -238,7 +238,7 @@ void CPU::JRe8(const bool& condition) {
     ++pc_;
     return;
   }
-  pc_ += static_cast<int8_t>(game_.ROM()[pc_]);
+  pc_ += static_cast<int8_t>(game_.ROM()[pc_]) + 1;
 }
 
 void CPU::LDn16(const RegisterPair pair) {
