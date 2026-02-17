@@ -124,14 +124,19 @@ void CPU::Cycle() {
     case 0xCD: {
       const uint8_t lo = game_.ROM()[pc_];
       const uint8_t hi = game_.ROM()[pc_ + 1];
-      pc_+=2;
+      pc_ += 2;
+
       auto [pc_hi, pc_lo] = SplitBytes(pc_);
-      hram_.Write(pc_hi, sp_);
-      hram_.Write(pc_lo, sp_ - 1);
-      --sp_;
+      memory_bus_write_(pc_hi, sp_);
+      memory_bus_write_(pc_lo, sp_ - 1);
+      sp_ -= 2;
+
       pc_ = CombineBytes(hi, lo);
       break;
-    }
+    }// RET
+    case 0xC9:
+      RET();
+      break;
     // LDH [a8], A
     case 0xE0:
       LDHn16r8(a_);
@@ -206,6 +211,13 @@ void CPU::INCr8(uint8_t &reg) {
   substraction_ = false;
   half_carry_ = (reg & 0xF) == 0;
   zero_ = reg == 0;
+}
+
+void CPU::RET() {
+  const uint8_t& lo = memory_bus_read_(sp_ + 1);
+  const uint8_t& hi = memory_bus_read_(sp_ + 2);
+  sp_ += 2;
+  pc_ = CombineBytes(hi, lo);
 }
 
 void CPU::LDn8(uint8_t& reg) {
@@ -358,6 +370,28 @@ void CPU::XORr8(uint8_t& left_reg, const uint8_t& right_reg) {
   carry_ = false;
 }
 
+RAM* CPU::get_memory_bus_(const uint16_t& address) const {
+  for (auto const& [ranges, ram] : memory_bus_map_) {
+    auto const& [start, end] = ranges;
+    if (!(start <= address && address <= end)) continue;
+
+    return ram;
+  }
+  return nullptr;
+}
+
+void CPU::memory_bus_write_(const uint8_t& value, const uint16_t& address) const {
+  RAM* ram = get_memory_bus_(address);
+
+  ram->Write(value, address);
+}
+
+uint8_t CPU::memory_bus_read_(const uint8_t& address) const {
+  const RAM* ram = get_memory_bus_(address);
+
+  return ram->Read(address);
+}
+
 uint16_t CPU::CombineRegisters(const RegisterPair pair) const {
   auto [hi, lo] = register_pairs_.at(pair);
   return CombineBytes(hi, lo);
@@ -368,5 +402,5 @@ uint16_t CPU::CombineBytes(const uint8_t& hi, const uint8_t& lo) {
 }
 
 std::pair<uint8_t, uint8_t> CPU::SplitBytes(const uint16_t& value) {
-  return {value & 0xF0, value & 0xF};
+  return {(value & 0xFF00) >> 8, value & 0xFF};
 }

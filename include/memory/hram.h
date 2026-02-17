@@ -6,7 +6,6 @@
 #define GB_EMULATOR_HRAM_H
 #include <cstdint>
 #include <string>
-#include <vector>
 
 #include "ram.h"
 

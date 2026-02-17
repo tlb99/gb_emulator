@@ -95,7 +95,12 @@ private:
     {{0xA8, 0xAF}, [this](uint8_t& left, const uint8_t& right) { XORr8(left, right); }},
     {{0xB0, 0xB7}, [this](uint8_t& left, const uint8_t& right) { ORr8(left, right);  }},
     {{0xB8, 0xBF}, [this](const uint8_t& left, const uint8_t& right) { CPr8(left, right);  }},
-};
+  };
+
+  const std::map<std::pair<uint16_t, uint16_t>, RAM*> memory_bus_map_ = {
+    {{WRAM::START, WRAM::END}, &wram_},
+    {{HRAM::START, HRAM::END}, &hram_},
+  };
 
   /* 1-byte opcodes */
 
@@ -120,6 +125,8 @@ private:
 
   void CPr8(const uint8_t& left_reg, const uint8_t& right_reg);
   void INCr8(uint8_t &reg);
+
+  void RET();
 
   // 2-byte opcodes
   void LDn8(uint8_t& reg);
@@ -150,6 +157,10 @@ private:
 
   void ORr8(uint8_t& left_reg, const uint8_t& right_reg);
   void XORr8(uint8_t& left_reg, const uint8_t& right_reg);
+
+  [[nodiscard]] RAM* get_memory_bus_(const uint16_t& address) const;
+  void memory_bus_write_(const uint8_t& value, const uint16_t& address) const;
+  [[nodiscard]] uint8_t memory_bus_read_(const uint8_t& address) const;
 
   // Helper function to combine two 8-bit registers into a 16-bit value
   [[nodiscard]] uint16_t CombineRegisters(RegisterPair pair) const;
