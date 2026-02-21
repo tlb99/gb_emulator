@@ -119,7 +119,15 @@ private:
   const std::map<uint8_t, PrefixedFunction> prefix_functions_ = {
     { 0x00, [this](uint8_t& reg) { RLCr8(reg); }},
     { 0x08, [this](uint8_t& reg) { RRCr8(reg); }},
+    { 0x10, [this](uint8_t& reg) { RLr8(reg); }},
+    { 0x18, [this](uint8_t& reg) { RRr8(reg); }},
+    { 0x20, [this](uint8_t& reg) { SLAr8(reg); }},
+    { 0x28, [this](uint8_t& reg) { SRAr8(reg); }},
     { 0x30, [this](uint8_t& reg) { SWAPr8(reg); }},
+    { 0x38, [this](uint8_t& reg) { SRLr8(reg); }},
+    { 0x40, [this](uint8_t& reg, const uint8_t& bit) { BITr8(reg, bit); }},
+    { 0x80, [this](uint8_t& reg, const uint8_t& bit) { RESr8(reg, bit); }},
+    { 0xC0, [this](uint8_t& reg, const uint8_t& bit) { SETr8(reg, bit); }},
   };
 
     /* 1-byte opcodes */
@@ -164,11 +172,18 @@ private:
 
   /* Prefix functions*/
   void RLCr8(uint8_t& reg);
-
   void RRCr8(uint8_t& reg);
+  void RLr8(uint8_t& reg);
+  void RRr8(uint8_t& reg);
+  void SLAr8(uint8_t& reg);
+  void SRAr8(uint8_t& reg);
+  void SWAPr8(uint8_t& reg);
+  void SRLr8(uint8_t& reg);
+  void BITr8(const uint8_t& reg, const uint8_t& bit);
+  void RESr8(uint8_t& reg, const uint8_t& bit);
+  void SETr8(uint8_t& reg, const uint8_t& bit);
 
   void RLCr16(uint8_t& reg);
-  void SWAPr8(uint8_t& reg);
 
   void PREFIX(const uint8_t &opcode) const;
 

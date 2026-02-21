@@ -329,21 +329,96 @@ void CPU::SWAPr8(uint8_t& reg) {
   carry_ = false;
 }
 
-void CPU::PREFIX(const uint8_t &opcode) const {
-  auto it = prefix_functions_.lower_bound(opcode);
+void CPU::RLr8(uint8_t& reg) {
+  const bool old_carry = carry_;
+  carry_ = (reg & 0x80) != 0;
 
-  // Exact opcode not found
-  if (it == prefix_functions_.end()) {
+  reg = (reg << 1) | (old_carry ? 1 : 0);
+  zero_ = reg == 0;
+  substraction_ = false;
+  half_carry_ = false;
+}
+
+void CPU::RRr8(uint8_t& reg) {
+  const bool old_carry = carry_;
+  carry_ = (reg & 0x01) != 0;
+
+  reg = (reg >> 1) | (old_carry ? 0x80 : 0);
+  zero_ = reg == 0;
+  substraction_ = false;
+  half_carry_ = false;
+}
+
+void CPU::SLAr8(uint8_t& reg) {
+  carry_ = (reg & 0x80) != 0;
+
+  reg <<= 1;
+  zero_ = reg == 0;
+  substraction_ = false;
+  half_carry_ = false;
+}
+
+void CPU::SRAr8(uint8_t& reg) {
+  carry_ = (reg & 0x01) != 0;
+
+  reg = (reg >> 1) | (reg & 0x80);
+  zero_ = reg == 0;
+  substraction_ = false;
+  half_carry_ = false;
+}
+
+void CPU::SRLr8(uint8_t& reg) {
+  carry_ = (reg & 0x01) != 0;
+
+  reg >>= 1;
+  zero_ = reg == 0;
+  substraction_ = false;
+  half_carry_ = false;
+}
+
+void CPU::BITr8(const uint8_t& reg, const uint8_t& bit) {
+  zero_ = (reg & (1 << bit)) == 0;
+  substraction_ = false;
+  half_carry_ = true;
+}
+
+void CPU::RESr8(uint8_t& reg, const uint8_t& bit) {
+  reg &= ~(1 << bit);
+}
+
+void CPU::SETr8(uint8_t& reg, const uint8_t& bit) {
+  reg |= (1 << bit);
+}
+
+void CPU::PREFIX(const uint8_t &opcode) const {
+  auto it = prefix_functions_.upper_bound(opcode);
+
+  if (it != prefix_functions_.begin()) {
     --it;
   }
 
-  const auto func = it->second;
+  const auto& func = it->second;
+  const uint8_t reg_index = opcode & 0x7;
 
-  const uint8_t lower_nibble = opcode & 0xF;
-
-  if (const auto p_func_r8 = std::get_if<std::function<void(uint8_t&)>>(&func)) {
-    uint8_t& reg = register_ranges_.at(lower_nibble);
-    (*p_func_r8)(reg);
+  if (const auto* p_func_r8 = std::get_if<std::function<void(uint8_t&)>>(&func)) {
+    if (reg_index == 6) {
+      const uint16_t hl = CombineRegisters(RegisterPair::HL);
+      uint8_t value = memory_bus_read_(hl);
+      (*p_func_r8)(value);
+      memory_bus_write_(value, hl);
+    } else {
+      (*p_func_r8)(register_ranges_.at(reg_index));
+    }
+  } else if (const auto* p_func_bit = std::get_if<std::function<void(uint8_t&, const uint8_t&)>>(&func)) {
+    const uint8_t bit = (opcode >> 3) & 0x7;
+    if (reg_index == 6) {
+      const uint16_t hl = CombineRegisters(RegisterPair::HL);
+      uint8_t value = memory_bus_read_(hl);
+      (*p_func_bit)(value, bit);
+      memory_bus_write_(value, hl);
+    } else {
+      (*p_func_bit)(register_ranges_.at(reg_index), bit);
+    }
   }
 
 }
