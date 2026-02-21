@@ -9,6 +9,7 @@
 #include <functional>
 #include <map>
 #include <unordered_map>
+#include <variant>
 
 #include "graphics/ppu.h"
 #include "memory/game.h"
@@ -70,6 +71,7 @@ private:
     {3, e_},
     {4, h_},
     {5, l_},
+    {7, a_}
   };
 
   const std::map<uint8_t, uint8_t&> left_register_ranges_ = {
@@ -86,12 +88,12 @@ private:
 
   const std::vector<std::pair<std::pair<uint8_t, uint8_t>, ArithmeticFunction>> arithmetic_functions_ = {
     {{0x40, 0x45}, [](uint8_t& left, const uint8_t& right) { LDr8r8(left, right); }},
-    {{0x47, 0x4D}, [](uint8_t& left, const uint8_t& right) { LDr8r8(left, right); }},
+    {{0x47, 0x4F}, [](uint8_t& left, const uint8_t& right) { LDr8r8(left, right); }},
     {{0x50, 0x55}, [](uint8_t& left, const uint8_t& right) { LDr8r8(left, right); }},
-    {{0x57, 0x5D}, [](uint8_t& left, const uint8_t& right) { LDr8r8(left, right); }},
+    {{0x57, 0x5F}, [](uint8_t& left, const uint8_t& right) { LDr8r8(left, right); }},
     {{0x60, 0x65}, [](uint8_t& left, const uint8_t& right) { LDr8r8(left, right); }},
-    {{0x67, 0x6D}, [](uint8_t& left, const uint8_t& right) { LDr8r8(left, right); }},
-    {{0x78, 0x7D}, [](uint8_t& left, const uint8_t& right) { LDr8r8(left, right); }},
+    {{0x67, 0x6F}, [](uint8_t& left, const uint8_t& right) { LDr8r8(left, right); }},
+    {{0x78, 0x7F}, [](uint8_t& left, const uint8_t& right) { LDr8r8(left, right); }},
     {{0x80, 0x87}, [this](uint8_t& left, const uint8_t& right) { ADDr8(left, right); }},
     {{0x88, 0x8E}, [this](uint8_t& left, const uint8_t& right) { ADCr8(left, right); }},
     {{0x90, 0x97}, [this](uint8_t& left, const uint8_t& right) { SUBr8(left, right); }},
@@ -110,7 +112,17 @@ private:
 
   std::vector<MemoryRange> memory_bus_map_;
 
-  /* 1-byte opcodes */
+  using PrefixedFunction = std::variant<std::function<void(uint8_t&)>,
+                                        std::function<void(uint16_t&)>,
+                                        std::function<void(uint8_t&, const uint8_t&)>>;
+
+  const std::map<uint8_t, PrefixedFunction> prefix_functions_ = {
+    { 0x00, [this](uint8_t& reg) { RLCr8(reg); }},
+    { 0x08, [this](uint8_t& reg) { RRCr8(reg); }},
+    { 0x30, [this](uint8_t& reg) { SWAPr8(reg); }},
+  };
+
+    /* 1-byte opcodes */
 
   /**
  * @brief Writes the value of source_reg into the WRAM address obtained by combining high_reg and low_reg.
@@ -136,6 +148,7 @@ private:
 
   void RET();
   void CPL();
+  void RST(const uint8_t& address);
 
   // 2-byte opcodes
   void LDn8(uint8_t& reg);
@@ -147,6 +160,17 @@ private:
   void JRe8(const bool &condition);
 
   void ANDr8n8(uint8_t& reg);
+
+
+  /* Prefix functions*/
+  void RLCr8(uint8_t& reg);
+
+  void RRCr8(uint8_t& reg);
+
+  void RLCr16(uint8_t& reg);
+  void SWAPr8(uint8_t& reg);
+
+  void PREFIX(const uint8_t &opcode) const;
 
   // 3-byte opcodes
   void LDn16(RegisterPair pair);

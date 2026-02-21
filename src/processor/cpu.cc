@@ -8,7 +8,6 @@
 
 #include <spdlog/spdlog.h>
 
-// TODO implement memory bus to determine which address corresponds to which component
 void CPU::Cycle() {
   // Fetch
   const uint8_t opcode = game_.ROM()[pc_++];
@@ -124,6 +123,10 @@ void CPU::Cycle() {
       pc_ = CombineBytes(hi, lo);
       break;
     }
+    // PREFIX
+    case 0xCB:
+      PREFIX(game_.ROM()[pc_++]);
+      break;
     // CALL a16
     case 0xCD: {
       const uint8_t lo = game_.ROM()[pc_];
@@ -145,7 +148,11 @@ void CPU::Cycle() {
     case 0xE0:
       LDHn16r8(a_);
       break;
-    // LDH [C], A
+    // POP HL
+    //case 0xE1:
+      //POP(RegisterPair::HL);
+      //break;
+      // LDH [C], A
     case 0xE2:
       LDHr8r8(a_, c_);
       break;
@@ -153,11 +160,15 @@ void CPU::Cycle() {
     case 0xE6:
       ANDr8n8(a_);
       break;
-      // LD [a16], A
+    // LD [a16], A
     case 0xEA:
       LDa16r8(a_);
       break;
-    // LDH A, [a8]
+    // RST $28
+    case 0xEF:
+      RST(0x28);
+      break;
+      // LDH A, [a8]
     case 0xF0:
       LDHr8a8(a_);
       break;
@@ -236,6 +247,17 @@ void CPU::CPL() {
   half_carry_ = true;
 }
 
+void CPU::RST(const uint8_t& address) {
+  ++pc_;
+
+  auto [pc_hi, pc_lo] = SplitBytes(pc_);
+  memory_bus_write_(pc_hi, sp_);
+  memory_bus_write_(pc_lo, sp_ - 1);
+  sp_ -= 2;
+
+  pc_ = CombineBytes(0x00, address);
+}
+
 void CPU::LDn8(uint8_t& reg) {
   const uint8_t byte = game_.ROM()[pc_];
   reg = byte;
@@ -272,6 +294,58 @@ void CPU::JRe8(const bool& condition) {
 void CPU::ANDr8n8(uint8_t& reg) {
   const uint8_t& byte = game_.ROM()[pc_++];
   ANDr8(reg, byte);
+}
+
+void CPU::RLCr8(uint8_t& reg) {
+  const uint8_t msb = reg & 0x80;
+  carry_ = msb == 1;
+
+  reg = (reg << 1) + msb;
+  zero_ = reg == 0;
+  substraction_ = false;
+  half_carry_ = false;
+}
+
+void CPU::RRCr8(uint8_t& reg) {
+  const uint8_t lsb = reg & 0x01;
+  carry_ = lsb == 1;
+
+  reg = (reg >> 1) + lsb;
+  zero_ = reg == 0;
+  substraction_ = false;
+  half_carry_ = false;
+}
+
+void CPU::RLCr16(uint8_t& reg) {
+
+}
+
+void CPU::SWAPr8(uint8_t& reg) {
+  reg = (reg << 4) + (reg >> 4);
+
+  zero_ = reg == 0;
+  substraction_ = false;
+  half_carry_ = false;
+  carry_ = false;
+}
+
+void CPU::PREFIX(const uint8_t &opcode) const {
+  auto it = prefix_functions_.lower_bound(opcode);
+
+  // Exact opcode not found
+  if (it == prefix_functions_.end()) {
+    --it;
+  }
+
+  const auto func = it->second;
+
+  const uint8_t lower_nibble = opcode & 0xF;
+
+  if (const auto p_func_r8 = std::get_if<std::function<void(uint8_t&)>>(&func)) {
+    uint8_t& reg = register_ranges_.at(lower_nibble);
+    (*p_func_r8)(reg);
+  }
+
 }
 
 void CPU::LDn16(const RegisterPair pair) {
@@ -392,9 +466,9 @@ void CPU::XORr8(uint8_t& left_reg, const uint8_t& right_reg) {
 }
 
 RAM* CPU::get_memory_bus_(const uint16_t& address) const {
-  for (const auto& range : memory_bus_map_) {
-    if (range.start <= address && address <= range.end) {
-      return range.ram_ptr;
+  for (const auto& [start, end, ram_ptr] : memory_bus_map_) {
+    if (start <= address && address <= end) {
+      return ram_ptr;
     }
   }
   return nullptr;
