@@ -1,6 +1,24 @@
 ﻿//
-// Created by Tony on 1/30/2026.
+// Created by Tony on 2/13/2026.
 //
 
 #include "memory/memory.h"
 
+#include <spdlog/spdlog.h>
+
+void Memory::Write(const uint8_t& value, const uint16_t& address) {
+  if (address >= START && address <= END) {
+    memory_[address - START] = value;
+  } else {
+    spdlog::warn("Invalid {} write: addr=0x{:04X}, value=0x{:02X}", get_class_name(), address, value);
+  }
+}
+
+uint8_t Memory::Read(const uint16_t& address) const {
+  if (address >= START && address <= END) {
+    return memory_[address - START];
+  }
+
+  spdlog::warn("Invalid {} read: addr=0x{:04X}", get_class_name(), address);
+  return 0xFF;
+}

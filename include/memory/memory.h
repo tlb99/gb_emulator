@@ -1,11 +1,32 @@
 ﻿//
-// Created by Tony on 1/30/2026.
+// Created by Tony on 2/13/2026.
 //
 
 #ifndef GB_EMULATOR_MEMORY_H
 #define GB_EMULATOR_MEMORY_H
+#include <cstdint>
+#include <string>
+#include <vector>
+
 
 class Memory {
+public:
+  virtual ~Memory() = default;
+
+  const uint16_t START;
+  const uint16_t END;
+  const uint16_t SIZE;
+
+  Memory(const uint16_t start, const uint16_t end, const uint16_t size) : START(start), END(end), SIZE(size), memory_(SIZE) {}
+
+  void Write(const uint8_t &value, const uint16_t &address);
+  [[nodiscard]] uint8_t Read(const uint16_t &address) const;
+
+  [[nodiscard]] const std::vector<uint8_t>& GetMemory() const { return memory_; }
+protected:
+  [[nodiscard]] virtual std::string get_class_name() const = 0;
+  std::vector<uint8_t> memory_;
 };
+
 
 #endif //GB_EMULATOR_MEMORY_H
