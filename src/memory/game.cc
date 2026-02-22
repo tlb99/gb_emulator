@@ -24,7 +24,7 @@ bool Game::LoadFromFile(const std::string& game_path) {
     input_game.close();
     is_game_loaded_ = true;
     // TODO implement switchable bank, leaving this hardcoded for now
-    ram_ = rom_;
+    memory_ = rom_;
     return true;
   }
 
