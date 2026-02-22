@@ -125,9 +125,9 @@ private:
     { 0x28, [this](uint8_t& reg) { SRAr8(reg); }},
     { 0x30, [this](uint8_t& reg) { SWAPr8(reg); }},
     { 0x38, [this](uint8_t& reg) { SRLr8(reg); }},
-    { 0x40, [this](uint8_t& reg, const uint8_t& bit) { BITr8(reg, bit); }},
-    { 0x80, [this](uint8_t& reg, const uint8_t& bit) { RESr8(reg, bit); }},
-    { 0xC0, [this](uint8_t& reg, const uint8_t& bit) { SETr8(reg, bit); }},
+    { 0x40, [this](const uint8_t& reg, const uint8_t& bit) { BITr8(reg, bit); }},
+    { 0x80, [](uint8_t& reg, const uint8_t& bit) { RESr8(reg, bit); }},
+    { 0xC0, [](uint8_t& reg, const uint8_t& bit) { SETr8(reg, bit); }},
   };
 
     /* 1-byte opcodes */
