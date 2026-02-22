@@ -158,6 +158,9 @@ private:
   void CPL();
   void RST(const uint8_t& address);
 
+  void POP(RegisterPair pair);
+  void PUSH(RegisterPair pair);
+
   // 2-byte opcodes
   void LDn8(uint8_t& reg);
   void LDHn16r8(const uint8_t& source);

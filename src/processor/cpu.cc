@@ -77,7 +77,11 @@ void CPU::Cycle() {
     case 0x0E:
       LDn8(c_);
       break;
-    // JR NZ, e8
+    // LD D, n8
+    case 0x16:
+      LDn8(d_);
+      break;
+      // JR NZ, e8
     case 0x20:
       JRe8(!zero_);
       break;
@@ -134,8 +138,8 @@ void CPU::Cycle() {
       pc_ += 2;
 
       auto [pc_hi, pc_lo] = SplitBytes(pc_);
-      memory_bus_write_(pc_hi, sp_);
-      memory_bus_write_(pc_lo, sp_ - 1);
+      memory_bus_write_(pc_hi, sp_ - 1);
+      memory_bus_write_(pc_lo, sp_ - 2);
       sp_ -= 2;
 
       pc_ = CombineBytes(hi, lo);
@@ -149,10 +153,10 @@ void CPU::Cycle() {
       LDHn16r8(a_);
       break;
     // POP HL
-    //case 0xE1:
-      //POP(RegisterPair::HL);
-      //break;
-      // LDH [C], A
+    case 0xE1:
+      POP(RegisterPair::HL);
+      break;
+    // LDH [C], A
     case 0xE2:
       LDHr8r8(a_, c_);
       break;
@@ -235,8 +239,8 @@ void CPU::INCr8(uint8_t &reg) {
 }
 
 void CPU::RET() {
-  const uint8_t& lo = memory_bus_read_(sp_ + 1);
-  const uint8_t& hi = memory_bus_read_(sp_ + 2);
+  const uint8_t& lo = memory_bus_read_(sp_);
+  const uint8_t& hi = memory_bus_read_(sp_ + 1);
   sp_ += 2;
   pc_ = CombineBytes(hi, lo);
 }
@@ -253,9 +257,17 @@ void CPU::RST(const uint8_t& address) {
   auto [pc_hi, pc_lo] = SplitBytes(pc_);
   memory_bus_write_(pc_hi, sp_);
   memory_bus_write_(pc_lo, sp_ - 1);
-  sp_ -= 2;
+  --sp_;
 
   pc_ = CombineBytes(0x00, address);
+}
+
+void CPU::POP(RegisterPair pair) {
+
+}
+
+void CPU::PUSH(RegisterPair pair) {
+
 }
 
 void CPU::LDn8(uint8_t& reg) {
