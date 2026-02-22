@@ -16,6 +16,8 @@ add_executable(gb_emulator main.cpp
         include/memory/hram.h
         src/memory/ram.cc
         include/memory/ram.h
+        src/memory/vram.cc
+        include/memory/vram.h
 )
 
 target_include_directories(gb_emulator PRIVATE ${CMAKE_SOURCE_DIR}/include)
@@ -36,6 +38,8 @@ add_executable(gb_tests tests/test_game_boy.cc
         include/memory/hram.h
         src/memory/ram.cc
         include/memory/ram.h
+        src/memory/vram.cc
+        include/memory/vram.h
 )
 
 target_include_directories(gb_tests PRIVATE ${CMAKE_SOURCE_DIR}/include)
