@@ -180,8 +180,10 @@ private:
   void SWAPr8(uint8_t& reg);
   void SRLr8(uint8_t& reg);
   void BITr8(const uint8_t& reg, const uint8_t& bit);
-  void RESr8(uint8_t& reg, const uint8_t& bit);
-  void SETr8(uint8_t& reg, const uint8_t& bit);
+
+  static void RESr8(uint8_t& reg, const uint8_t& bit);
+
+  static void SETr8(uint8_t& reg, const uint8_t& bit);
 
   void RLCr16(uint8_t& reg);
 
