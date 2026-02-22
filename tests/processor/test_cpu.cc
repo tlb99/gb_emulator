@@ -13,9 +13,10 @@ TEST_CASE( "CPU opcode testing", "[cpu]" ) {
   ROM game;
   WRAM wram;
   HRAM hram;
+  VRAM vram;
   PPU ppu;
 
-  CPU cpu(wram,hram, game, ppu);
+  CPU cpu(wram,hram,vram, game, ppu);
 
   SECTION("Opcode 0x05 (DECr8)") {
     SECTION("DECr8 sets zero flag when decrementing register to zero") {
