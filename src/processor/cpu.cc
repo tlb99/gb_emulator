@@ -15,28 +15,9 @@ void CPU::Cycle() {
   spdlog::info( std::format("Processing opcode {:#04X} at ROM address {:#04X}", static_cast<unsigned int>(opcode),
     static_cast<unsigned int>(pc_ - 1)));
 
-  // Check if opcode falls within special ranges
-  for (const auto& [ranges, func] : arithmetic_functions_) {
-    if (auto [start, end] = ranges; !(start <= opcode && opcode <= end)) continue;
-
-    const uint8_t last_digit = opcode & 0xF;
-    const uint8_t last_digit_mod = last_digit > 0x7 ? last_digit - 0x8 : last_digit;
-    auto it = left_register_ranges_.lower_bound(opcode);
-
-    // Exact opcode not found
-    if (it == left_register_ranges_.end()) {
-      --it;
-    }
-
-    uint8_t& left_register = it->second;
-
-    if (last_digit == 0x6 || last_digit == 0xE)
-      func(left_register, wram_.Read(CombineRegisters(RegisterPair::HL)));
-    else if (last_digit == 0x7 || last_digit == 0xF)
-      func(left_register, a_);
-    else
-      func(left_register, register_ranges_.at(last_digit_mod));
-
+  // Check if opcode is an arithmetic/LD instruction (0x40-0xBF range)
+  if (opcode >= 0x40 && opcode <= 0xBF && opcode != 0x76) {
+    ProcessArithmeticOp(opcode);
     return;
   }
 
@@ -443,6 +424,38 @@ void CPU::PREFIX(const uint8_t &opcode) const {
 
 }
 
+void CPU::ProcessArithmeticOp(const uint8_t &opcode) const {
+  // Find the appropriate function based on the opcode base (upper 4 bits + lower 3 bits of upper nibble)
+  const uint8_t opcode_base = opcode & 0xF8;
+  auto it = arithmetic_functions_.upper_bound(opcode_base);
+
+  if (it != arithmetic_functions_.begin()) {
+    --it;
+  }
+
+  const auto& func = it->second;
+
+  // Get destination register based on opcode range
+  auto dest_it = destination_register_map_.upper_bound(opcode_base);
+  if (dest_it != destination_register_map_.begin()) {
+    --dest_it;
+  }
+  uint8_t& dest_register = dest_it->second;
+
+  // Get source operand based on lower 3 bits of opcode
+  const uint8_t source_index = opcode & 0x7;
+
+  const auto* p_func = std::get_if<std::function<void(uint8_t&, const uint8_t&)>>(&func);
+
+  if (source_index == 6) {
+    // Source is (HL) - memory at address HL
+    (*p_func)(dest_register, memory_bus_read_(CombineRegisters(RegisterPair::HL)));
+  } else {
+    // Source is a register
+    (*p_func)(dest_register, register_ranges_.at(source_index));
+  }
+}
+
 void CPU::LDn16(const RegisterPair pair) {
   auto [hi, lo] = register_pairs_.at(pair);
 
@@ -583,6 +596,7 @@ RAM* CPU::get_memory_bus_(const uint16_t& address) const {
       return ram_ptr;
     }
   }
+  spdlog::warn("Returning nullptr for memory bus address {:#04X}", address);
   return nullptr;
 }
 

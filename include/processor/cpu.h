@@ -15,18 +15,19 @@
 #include "memory/game.h"
 #include "memory/wram.h"
 #include "memory/hram.h"
-
+#include "memory/vram.h"
 
 
 class CPU {
 public:
-  explicit CPU(WRAM& memory, HRAM& hram, Game& game, PPU& ppu)
-  : game_(game), wram_(memory), hram_(hram), ppu_(ppu),
+  explicit CPU(WRAM& memory, HRAM& hram, VRAM& vram, Game& game, PPU& ppu)
+  : game_(game), wram_(memory), hram_(hram), vram_(vram), ppu_(ppu),
     a_(0x01), f_(0x00), b_(0xFF), c_(0x13), d_(0x00), e_(0xC1), h_(0x84), l_(0x03),
     pc_(0x0100), sp_(0xFFFE), zero_(false), substraction_(false), half_carry_(false), carry_(false) {
     memory_bus_map_ = {
       {WRAM::START, WRAM::END, &wram_},
-      {HRAM::START, HRAM::END, &hram_}
+      {HRAM::START, HRAM::END, &hram_},
+      {VRAM::START, VRAM::END, &vram_},
     };
   }
 
@@ -74,34 +75,46 @@ private:
     {7, a_}
   };
 
-  const std::map<uint8_t, uint8_t&> left_register_ranges_ = {
-    {0x40, b_},
-    {0x48, c_},
-    {0x50, d_},
-    {0x58, e_},
-    {0x60, h_},
-    {0x68, l_},
-    {0x78, a_},
+  // Maps opcode base (0x40, 0x48, etc.) to destination register for LD instructions
+  // For arithmetic ops (0x80+), destination is always A register
+  const std::map<uint8_t, uint8_t&> destination_register_map_ = {
+    {0x40, b_},  // LD B,r8
+    {0x48, c_},  // LD C,r8
+    {0x50, d_},  // LD D,r8
+    {0x58, e_},  // LD E,r8
+    {0x60, h_},  // LD H,r8
+    {0x68, l_},  // LD L,r8
+    {0x78, a_},  // LD A,r8
+    {0x80, a_},  // ADD A,r8
+    {0x88, a_},  // ADC A,r8
+    {0x90, a_},  // SUB r8
+    {0x98, a_},  // SBC A,r8
+    {0xA0, a_},  // AND r8
+    {0xA8, a_},  // XOR r8
+    {0xB0, a_},  // OR r8
+    {0xB8, a_},  // CP r8
   };
 
-  using ArithmeticFunction = std::function<void(uint8_t&, const uint8_t&)>;
+  using ArithmeticFunction = std::variant<
+    std::function<void(uint8_t&, const uint8_t&)>
+  >;
 
-  const std::vector<std::pair<std::pair<uint8_t, uint8_t>, ArithmeticFunction>> arithmetic_functions_ = {
-    {{0x40, 0x45}, [](uint8_t& left, const uint8_t& right) { LDr8r8(left, right); }},
-    {{0x47, 0x4F}, [](uint8_t& left, const uint8_t& right) { LDr8r8(left, right); }},
-    {{0x50, 0x55}, [](uint8_t& left, const uint8_t& right) { LDr8r8(left, right); }},
-    {{0x57, 0x5F}, [](uint8_t& left, const uint8_t& right) { LDr8r8(left, right); }},
-    {{0x60, 0x65}, [](uint8_t& left, const uint8_t& right) { LDr8r8(left, right); }},
-    {{0x67, 0x6F}, [](uint8_t& left, const uint8_t& right) { LDr8r8(left, right); }},
-    {{0x78, 0x7F}, [](uint8_t& left, const uint8_t& right) { LDr8r8(left, right); }},
-    {{0x80, 0x87}, [this](uint8_t& left, const uint8_t& right) { ADDr8(left, right); }},
-    {{0x88, 0x8E}, [this](uint8_t& left, const uint8_t& right) { ADCr8(left, right); }},
-    {{0x90, 0x97}, [this](uint8_t& left, const uint8_t& right) { SUBr8(left, right); }},
-    {{0x98, 0x9F}, [this](uint8_t& left, const uint8_t& right) { SBCr8(left, right); }},
-    {{0xA0, 0xA7}, [this](uint8_t& left, const uint8_t& right) { ANDr8(left, right); }},
-    {{0xA8, 0xAF}, [this](uint8_t& left, const uint8_t& right) { XORr8(left, right); }},
-    {{0xB0, 0xB7}, [this](uint8_t& left, const uint8_t& right) { ORr8(left, right);  }},
-    {{0xB8, 0xBF}, [this](const uint8_t& left, const uint8_t& right) { CPr8(left, right);  }},
+  const std::map<uint8_t, ArithmeticFunction> arithmetic_functions_ = {
+    {0x40, [](uint8_t& left, const uint8_t& right) { LDr8r8(left, right); }},  // LD B,r8
+    {0x48, [](uint8_t& left, const uint8_t& right) { LDr8r8(left, right); }},  // LD C,r8
+    {0x50, [](uint8_t& left, const uint8_t& right) { LDr8r8(left, right); }},  // LD D,r8
+    {0x58, [](uint8_t& left, const uint8_t& right) { LDr8r8(left, right); }},  // LD E,r8
+    {0x60, [](uint8_t& left, const uint8_t& right) { LDr8r8(left, right); }},  // LD H,r8
+    {0x68, [](uint8_t& left, const uint8_t& right) { LDr8r8(left, right); }},  // LD L,r8
+    {0x78, [](uint8_t& left, const uint8_t& right) { LDr8r8(left, right); }},  // LD A,r8
+    {0x80, [this](uint8_t& left, const uint8_t& right) { ADDr8(left, right); }},  // ADD A,r8
+    {0x88, [this](uint8_t& left, const uint8_t& right) { ADCr8(left, right); }},  // ADC A,r8
+    {0x90, [this](uint8_t& left, const uint8_t& right) { SUBr8(left, right); }},  // SUB r8
+    {0x98, [this](uint8_t& left, const uint8_t& right) { SBCr8(left, right); }},  // SBC A,r8
+    {0xA0, [this](uint8_t& left, const uint8_t& right) { ANDr8(left, right); }},  // AND r8
+    {0xA8, [this](uint8_t& left, const uint8_t& right) { XORr8(left, right); }},  // XOR r8
+    {0xB0, [this](uint8_t& left, const uint8_t& right) { ORr8(left, right); }},   // OR r8
+    {0xB8, [this](const uint8_t& left, const uint8_t& right) { CPr8(left, right); }} // CP r8
   };
 
   struct MemoryRange {
@@ -191,6 +204,7 @@ private:
   void RLCr16(uint8_t& reg);
 
   void PREFIX(const uint8_t &opcode) const;
+  void ProcessArithmeticOp(const uint8_t &opcode) const;
 
   // 3-byte opcodes
   void LDn16(RegisterPair pair);
@@ -229,6 +243,7 @@ private:
   Game& game_;
   WRAM& wram_;
   HRAM& hram_;
+  VRAM& vram_;
   PPU& ppu_;
 
   // 8-bit Registers
