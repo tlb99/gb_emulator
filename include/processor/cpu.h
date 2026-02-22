@@ -203,6 +203,7 @@ private:
   /* ALU operations */
 
   void ADDr8(uint8_t& left_reg, const uint8_t& right_reg);
+  void ADDr16r16(RegisterPair left, RegisterPair right);
   void ADCr8(uint8_t& left_reg, const uint8_t& right_reg);
 
   void SUBr8(uint8_t& left_reg, const uint8_t& right_reg);

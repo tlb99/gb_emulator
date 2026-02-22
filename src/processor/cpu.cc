@@ -81,6 +81,10 @@ void CPU::Cycle() {
     case 0x16:
       LDn8(d_);
       break;
+    // ADD HL, DE
+    case 0x19:
+      ADDr16r16(RegisterPair::HL, RegisterPair::DE);
+      break;
       // JR NZ, e8
     case 0x20:
       JRe8(!zero_);
@@ -89,7 +93,11 @@ void CPU::Cycle() {
     case 0x21:
       LDn16(RegisterPair::HL);
       break;
-    // LD A, [HL+]
+    // INC HL
+    case 0x23:
+      INCr16(RegisterPair::HL);
+      break;
+      // LD A, [HL+]
     case 0x2A:
       LDr16r8( RegisterPair::HL, a_);
       INCr16(RegisterPair::HL);
@@ -483,6 +491,23 @@ void CPU::ADDr8(uint8_t& left_reg, const uint8_t& right_reg) {
 
   left_reg += right_reg;
   zero_ = left_reg == 0;
+}
+
+void CPU::ADDr16r16(RegisterPair left, RegisterPair right) {
+  substraction_ = false;
+
+  auto& [left_hi, left_lo] = register_pairs_.at(left);
+
+  const uint16_t left_r16 = CombineRegisters(left);
+  const uint16_t right_r16 = CombineRegisters(right);
+
+  carry_ = right_r16 > 0xFFFF - left_r16;
+  half_carry_ = (right_r16 & 0xFFF) > 0xFFF - (left_r16 & 0xFFF) ;
+  const uint16_t sum = left_r16 + right_r16;
+
+  auto [hi, lo] = SplitBytes(sum);
+  left_hi = hi;
+  left_lo = lo;
 }
 
 void CPU::ADCr8(uint8_t& left_reg, const uint8_t& right_reg) {
