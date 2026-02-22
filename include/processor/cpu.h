@@ -28,6 +28,7 @@ public:
       {WRAM::START, WRAM::END, &wram_},
       {HRAM::START, HRAM::END, &hram_},
       {VRAM::START, VRAM::END, &vram_},
+      {Game::START, Game::END, &game_},
     };
   }
 
@@ -174,6 +175,8 @@ private:
   void POP(RegisterPair pair);
   void PUSH(RegisterPair pair);
 
+  void JPr16(RegisterPair pair);
+
   // 2-byte opcodes
   void LDn8(uint8_t& reg);
   void LDHn16r8(const uint8_t& source);
@@ -213,6 +216,7 @@ private:
   void LDa16r8(const uint8_t& reg);
   void DECr16(RegisterPair pair) const;
   void INCr16(RegisterPair pair) const;
+  void JPa16();
 
   /* ALU operations */
 

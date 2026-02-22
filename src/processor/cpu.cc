@@ -30,7 +30,11 @@ void CPU::Cycle() {
     case 0x1:
       LDn16(RegisterPair::BC);
       break;
-    // INC B
+    // LC [BC], A
+    case 0x2:
+      LDr16r8(RegisterPair::BC, a_);
+      break;
+      // INC B
     case 0x04:
       INCr8(b_);
       break;
@@ -108,12 +112,9 @@ void CPU::Cycle() {
     case 0x40:
       LDr8r8(b_,b_);
       break;
-    // JP a16 -- Jump to little-endian 16-bit address
+    // JP a16
     case 0xC3: {
-      // Get the next two bytes, then set PC to the combo of these two bytes by bit shifting to the left
-      const uint8_t lo = game_.ROM()[pc_];
-      const uint8_t hi = game_.ROM()[pc_ + 1];
-      pc_ = CombineBytes(hi, lo);
+      JPa16();
       break;
     }
     // PREFIX
@@ -133,11 +134,16 @@ void CPU::Cycle() {
 
       pc_ = CombineBytes(hi, lo);
       break;
-    }// RET
+    }
+    // RET
     case 0xC9:
       RET();
       break;
-    // LDH [a8], A
+    // PUSH DE
+    case 0xD5:
+      PUSH(RegisterPair::DE);
+      break;
+      // LDH [a8], A
     case 0xE0:
       LDHn16r8(a_);
       break;
@@ -153,7 +159,11 @@ void CPU::Cycle() {
     case 0xE6:
       ANDr8n8(a_);
       break;
-    // LD [a16], A
+    // JP HL
+    case 0xE9:
+      JPr16(RegisterPair::HL);
+      break;
+      // LD [a16], A
     case 0xEA:
       LDa16r8(a_);
       break;
@@ -161,7 +171,7 @@ void CPU::Cycle() {
     case 0xEF:
       RST(0x28);
       break;
-      // LDH A, [a8]
+    // LDH A, [a8]
     case 0xF0:
       LDHr8a8(a_);
       break;
@@ -179,6 +189,12 @@ void CPU::Cycle() {
       exit(0);
   }
 
+}
+
+void CPU::JPa16() {
+  const uint8_t lo = game_.ROM()[pc_];
+  const uint8_t hi = game_.ROM()[pc_ + 1];
+  pc_ = CombineBytes(hi, lo);
 }
 
 void CPU::LDr16r8(const RegisterPair pair, const uint8_t &source) const {
@@ -252,11 +268,27 @@ void CPU::RST(const uint8_t& address) {
 }
 
 void CPU::POP(RegisterPair pair) {
+  auto [pair_hi, pair_lo] = register_pairs_.at(pair);
 
+  const uint8_t& lo = memory_bus_read_(sp_);
+  const uint8_t& hi = memory_bus_read_(sp_ + 1);
+  sp_ += 2;
+
+  pair_hi = hi;
+  pair_lo = lo;
 }
 
-void CPU::PUSH(RegisterPair pair) {
+void CPU::PUSH(const RegisterPair pair) {
+  auto [pair_hi, pair_lo] = register_pairs_.at(pair);
 
+  --sp_;
+  memory_bus_write_(pair_hi, sp_);
+  --sp_;
+  memory_bus_write_(pair_lo, sp_);
+}
+
+void CPU::JPr16(const RegisterPair pair) {
+  pc_ = CombineRegisters(pair);
 }
 
 void CPU::LDn8(uint8_t& reg) {
