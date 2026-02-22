@@ -10,7 +10,7 @@
 
 class GameBoy {
 public:
-  GameBoy() : cpu_(memory_, hram_, game_, ppu_) {}
+  GameBoy() : cpu_(memory_, hram_, vram_, game_, ppu_) {}
   void run();
   bool loadGame(const std::string& path);
 
@@ -19,6 +19,7 @@ private:
   PPU ppu_;
   WRAM memory_;
   HRAM hram_;
+  VRAM vram_;
   Game game_;
 };
 
