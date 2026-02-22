@@ -121,7 +121,7 @@ private:
   struct MemoryRange {
     uint16_t start;
     uint16_t end;
-    RAM* ram_ptr;
+    Memory* ram_ptr;
   };
 
   std::vector<MemoryRange> memory_bus_map_;
@@ -232,7 +232,7 @@ private:
   void ORr8(uint8_t& left_reg, const uint8_t& right_reg);
   void XORr8(uint8_t& left_reg, const uint8_t& right_reg);
 
-  [[nodiscard]] RAM* get_memory_bus_(const uint16_t& address) const;
+  [[nodiscard]] Memory* get_memory_bus_(const uint16_t& address) const;
   void memory_bus_write_(const uint8_t& value, const uint16_t& address) const;
   [[nodiscard]] uint8_t memory_bus_read_(const uint16_t &address) const;
 

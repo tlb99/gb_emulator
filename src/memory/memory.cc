@@ -2,11 +2,11 @@
 // Created by Tony on 2/13/2026.
 //
 
-#include "memory/ram.h"
+#include "memory/memory.h"
 
 #include <spdlog/spdlog.h>
 
-void RAM::Write(const uint8_t& value, const uint16_t& address) {
+void Memory::Write(const uint8_t& value, const uint16_t& address) {
   if (address >= START && address <= END) {
     ram_[address - START] = value;
   } else {
@@ -14,7 +14,7 @@ void RAM::Write(const uint8_t& value, const uint16_t& address) {
   }
 }
 
-uint8_t RAM::Read(const uint16_t& address) const {
+uint8_t Memory::Read(const uint16_t& address) const {
   if (address >= START && address <= END) {
     return ram_[address - START];
   }

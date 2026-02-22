@@ -14,8 +14,8 @@ add_executable(gb_emulator main.cpp
         src/graphics/ppu.cc
         src/memory/hram.cc
         include/memory/hram.h
-        src/memory/ram.cc
-        include/memory/ram.h
+        src/memory/Memory.cc
+        include/memory/Memory.h
         src/memory/vram.cc
         include/memory/vram.h
 )
@@ -36,8 +36,8 @@ add_executable(gb_tests tests/test_game_boy.cc
         tests/processor/test_cpu.cc
         src/memory/hram.cc
         include/memory/hram.h
-        src/memory/ram.cc
-        include/memory/ram.h
+        src/memory/Memory.cc
+        include/memory/Memory.h
         src/memory/vram.cc
         include/memory/vram.h
 )

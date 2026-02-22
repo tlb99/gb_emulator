@@ -7,16 +7,16 @@
 #include <cstdint>
 #include <string>
 
-#include "ram.h"
+#include "memory.h"
 
 
-class HRAM : public RAM {
+class HRAM : public Memory {
 public:
   static constexpr uint16_t START = 0xFF80;
   static constexpr uint16_t END = 0xFFFE;
   static constexpr uint16_t SIZE = 0xFE;
 
-  HRAM() : RAM(START, END, SIZE) {}
+  HRAM() : Memory(START, END, SIZE) {}
 
 protected:
   [[nodiscard]] std::string get_class_name() const override { return "HRAM";}

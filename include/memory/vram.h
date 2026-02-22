@@ -4,16 +4,16 @@
 
 #ifndef GB_EMULATOR_VRAM_H
 #define GB_EMULATOR_VRAM_H
-#include "ram.h"
+#include "memory.h"
 
 
-class VRAM : public RAM {
+class VRAM : public Memory {
 public:
   static constexpr uint16_t START = 0x8000;
   static constexpr uint16_t END = 0x9FFF;
   static constexpr uint16_t SIZE = 0x2000;
 
-  VRAM() : RAM(START, END, SIZE) {}
+  VRAM() : Memory(START, END, SIZE) {}
 
 protected:
   [[nodiscard]] std::string get_class_name() const override { return "VRAM";}
