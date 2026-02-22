@@ -203,7 +203,7 @@ void CPU::LDr16r8(const RegisterPair pair, const uint8_t &source) const {
 
 void CPU::DECr8(uint8_t& reg) {
   substraction_ = true;
-  half_carry_ = (reg & 0x10) == 1;
+  half_carry_ = (reg & 0x0F) == 0;
   --reg;
   zero_ = reg == 0;
 }
