@@ -7,13 +7,22 @@
 #include <filesystem>
 #include <vector>
 
-class Game {
+#include "ram.h"
+
+class Game : public RAM {
 public:
-  Game() : is_game_loaded_(false), rom_(0) {};
+  static constexpr uint16_t START = 0x0000;
+  static constexpr uint16_t END = 0x7FFF;
+  static constexpr uint16_t SIZE = 0x8000;
+
+  Game() : RAM(START, END, SIZE), is_game_loaded_(false), rom_(0) {};
   bool LoadFromFile(const std::string& game_path);
   [[nodiscard]] bool IsGameLoaded() const { return is_game_loaded_; }
   [[nodiscard]] const std::vector<uint8_t>& ROM() const { return rom_; }
   void LoadFromBuffer(const std::vector<uint8_t>& buffer) { rom_ = buffer; is_game_loaded_ = true; }
+
+protected:
+  [[nodiscard]] std::string get_class_name() const override { return "ROM";}
 
 private:
   bool is_game_loaded_;
