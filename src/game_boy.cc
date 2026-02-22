@@ -5,11 +5,11 @@
 #include "game_boy.h"
 
 bool GameBoy::loadGame(const std::string& path) {
-  return game_.LoadFromFile(path);
+  return rom_.LoadFromFile(path);
 }
 
 void GameBoy::run() {
-  if (!game_.IsGameLoaded())
+  if (!rom_.IsGameLoaded())
     return;
 
   while (true)

@@ -5,12 +5,12 @@
 #ifndef GB_EMULATOR_GAME_BOY_H
 #define GB_EMULATOR_GAME_BOY_H
 #include "graphics/ppu.h"
-#include "memory/game.h"
+#include "memory/rom.h"
 #include "processor/cpu.h"
 
 class GameBoy {
 public:
-  GameBoy() : cpu_(memory_, hram_, vram_, game_, ppu_) {}
+  GameBoy() : cpu_(memory_, hram_, vram_, rom_, ppu_) {}
   void run();
   bool loadGame(const std::string& path);
 
@@ -20,7 +20,7 @@ private:
   WRAM memory_;
   HRAM hram_;
   VRAM vram_;
-  Game game_;
+  ROM rom_;
 };
 
 #endif //GB_EMULATOR_GAME_BOY_H

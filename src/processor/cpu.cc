@@ -10,7 +10,7 @@
 
 void CPU::Cycle() {
   // Fetch
-  const uint8_t opcode = game_.ROM()[pc_++];
+  const uint8_t opcode = memory_bus_read_(pc_++);
 
   spdlog::info( std::format("Processing opcode {:#04X} at ROM address {:#04X}", static_cast<unsigned int>(opcode),
     static_cast<unsigned int>(pc_ - 1)));
@@ -119,12 +119,12 @@ void CPU::Cycle() {
     }
     // PREFIX
     case 0xCB:
-      PREFIX(game_.ROM()[pc_++]);
+      PREFIX(memory_bus_read_(pc_++));
       break;
     // CALL a16
     case 0xCD: {
-      const uint8_t lo = game_.ROM()[pc_];
-      const uint8_t hi = game_.ROM()[pc_ + 1];
+      const uint8_t lo = memory_bus_read_(pc_);
+      const uint8_t hi = memory_bus_read_(pc_ + 1);
       pc_ += 2;
 
       auto [pc_hi, pc_lo] = SplitBytes(pc_);
@@ -192,8 +192,8 @@ void CPU::Cycle() {
 }
 
 void CPU::JPa16() {
-  const uint8_t lo = game_.ROM()[pc_];
-  const uint8_t hi = game_.ROM()[pc_ + 1];
+  const uint8_t lo = memory_bus_read_(pc_);
+  const uint8_t hi = memory_bus_read_(pc_ + 1);
   pc_ = CombineBytes(hi, lo);
 }
 
@@ -209,8 +209,8 @@ void CPU::DECr8(uint8_t& reg) {
 }
 
 void CPU::LDa16r8(const uint8_t& reg) {
-  const uint8_t lo = game_.ROM()[pc_];
-  const uint8_t hi = game_.ROM()[pc_ + 1];
+  const uint8_t lo = memory_bus_read_(pc_);
+  const uint8_t hi = memory_bus_read_(pc_ + 1);
 
   const uint16_t address = CombineBytes(hi, lo);
   wram_.Write(reg, address);
@@ -218,7 +218,7 @@ void CPU::LDa16r8(const uint8_t& reg) {
 }
 
 void CPU::LDr8n8(RegisterPair pair) {
-  const uint8_t byte = game_.ROM()[pc_++];
+  const uint8_t byte = memory_bus_read_(pc_++);
 
   wram_.Write(byte, CombineRegisters(pair));
 }
@@ -292,13 +292,13 @@ void CPU::JPr16(const RegisterPair pair) {
 }
 
 void CPU::LDn8(uint8_t& reg) {
-  const uint8_t byte = game_.ROM()[pc_];
+  const uint8_t byte = memory_bus_read_(pc_);
   reg = byte;
   ++pc_;
 }
 
 void CPU::LDHn16r8(const uint8_t& source) {
-  const uint8_t offset = game_.ROM()[pc_++];
+  const uint8_t offset = memory_bus_read_(pc_++);
   wram_.Write(source, 0xFF00 + offset);
 }
 
@@ -310,7 +310,7 @@ void CPU::LDHr8a8(uint8_t& destination) {
 }
 
 void CPU::CPn8(const uint8_t& source) {
-  const uint8_t& right = game_.ROM()[pc_++];
+  const uint8_t& right = memory_bus_read_(pc_++);
   uint8_t source_copy = source;
   SUBr8(source_copy, right);
 }
@@ -321,11 +321,11 @@ void CPU::JRe8(const bool& condition) {
     ++pc_;
     return;
   }
-  pc_ += static_cast<int8_t>(game_.ROM()[pc_]) + 1;
+  pc_ += static_cast<int8_t>(memory_bus_read_(pc_)) + 1;
 }
 
 void CPU::ANDr8n8(uint8_t& reg) {
-  const uint8_t& byte = game_.ROM()[pc_++];
+  const uint8_t& byte = memory_bus_read_(pc_++);
   ANDr8(reg, byte);
 }
 
@@ -491,8 +491,8 @@ void CPU::ProcessArithmeticOp(const uint8_t &opcode) const {
 void CPU::LDn16(const RegisterPair pair) {
   auto [hi, lo] = register_pairs_.at(pair);
 
-  const uint8_t byte1 = game_.ROM()[pc_];
-  const uint8_t byte2 = game_.ROM()[pc_ + 1];
+  const uint8_t byte1 = memory_bus_read_(pc_);
+  const uint8_t byte2 = memory_bus_read_(pc_ + 1);
 
   hi = byte2;
   lo = byte1;
@@ -501,8 +501,8 @@ void CPU::LDn16(const RegisterPair pair) {
 }
 
 void CPU::LDr16n16(uint16_t &reg) {
-  const uint8_t lo = game_.ROM()[pc_];
-  const uint8_t hi = game_.ROM()[pc_ + 1];
+  const uint8_t lo = memory_bus_read_(pc_);
+  const uint8_t hi = memory_bus_read_(pc_ + 1);
 
   reg = CombineBytes(hi, lo);
   pc_+=2;

@@ -7,7 +7,7 @@ find_package(SDL2 REQUIRED)
 find_package(spdlog REQUIRED)
 
 add_executable(gb_emulator main.cpp
-        src/memory/game.cc
+        src/memory/ROM.cc
         src/processor/cpu.cc
         src/game_boy.cc
         src/memory/wram.cc
@@ -28,7 +28,7 @@ find_package(Catch2 3 REQUIRED)
 
 add_executable(gb_tests tests/test_game_boy.cc
         tests/memory/test_wram.cc
-        src/memory/game.cc
+        src/memory/ROM.cc
         src/processor/cpu.cc
         src/game_boy.cc
         src/memory/wram.cc

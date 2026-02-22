@@ -2,7 +2,7 @@
 #include <iostream>
 
 #include "game_boy.h"
-#include "include/memory/game.h"
+#include "include/memory/rom.h"
 
 // TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or click the <icon
 // src="AllIcons.Actions.Execute"/> icon in the gutter.

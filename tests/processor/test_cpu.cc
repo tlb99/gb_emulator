@@ -4,13 +4,13 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include "processor/cpu.h"
-#include "memory/game.h"
+#include "memory/rom.h"
 #include "memory/wram.h"
 #include "graphics/ppu.h"
 
 TEST_CASE( "CPU opcode testing", "[cpu]" ) {
   // Test setup for all sections
-  Game game;
+  ROM game;
   WRAM wram;
   HRAM hram;
   PPU ppu;

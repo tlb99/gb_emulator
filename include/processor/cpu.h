@@ -12,7 +12,7 @@
 #include <variant>
 
 #include "graphics/ppu.h"
-#include "memory/game.h"
+#include "memory/rom.h"
 #include "memory/wram.h"
 #include "memory/hram.h"
 #include "memory/vram.h"
@@ -20,15 +20,15 @@
 
 class CPU {
 public:
-  explicit CPU(WRAM& memory, HRAM& hram, VRAM& vram, Game& game, PPU& ppu)
-  : game_(game), wram_(memory), hram_(hram), vram_(vram), ppu_(ppu),
+  explicit CPU(WRAM& memory, HRAM& hram, VRAM& vram, ROM& rom, PPU& ppu)
+  : rom_(rom), wram_(memory), hram_(hram), vram_(vram), ppu_(ppu),
     a_(0x01), f_(0x00), b_(0xFF), c_(0x13), d_(0x00), e_(0xC1), h_(0x84), l_(0x03),
     pc_(0x0100), sp_(0xFFFE), zero_(false), substraction_(false), half_carry_(false), carry_(false) {
     memory_bus_map_ = {
       {WRAM::START, WRAM::END, &wram_},
       {HRAM::START, HRAM::END, &hram_},
       {VRAM::START, VRAM::END, &vram_},
-      {Game::START, Game::END, &game_},
+      {ROM::START, ROM::END, &rom_},
     };
   }
 
@@ -244,7 +244,7 @@ private:
 
   static std::pair<uint8_t, uint8_t> SplitBytes(const uint16_t& value) ;
 
-  Game& game_;
+  ROM& rom_;
   WRAM& wram_;
   HRAM& hram_;
   VRAM& vram_;
