@@ -86,14 +86,6 @@ private:
     {0x60, h_},  // LD H,r8
     {0x68, l_},  // LD L,r8
     {0x78, a_},  // LD A,r8
-    {0x80, a_},  // ADD A,r8
-    {0x88, a_},  // ADC A,r8
-    {0x90, a_},  // SUB r8
-    {0x98, a_},  // SBC A,r8
-    {0xA0, a_},  // AND r8
-    {0xA8, a_},  // XOR r8
-    {0xB0, a_},  // OR r8
-    {0xB8, a_},  // CP r8
   };
 
   using ArithmeticFunction = std::variant<
