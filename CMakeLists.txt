@@ -18,6 +18,10 @@ add_executable(gb_emulator main.cpp
         include/memory/Memory.h
         src/memory/vram.cc
         include/memory/vram.h
+        src/graphics/sdl2/sdl_2_renderer.cc
+        include/graphics/sdl2/sdl_2_renderer.h
+        src/graphics/tile.cc
+        include/graphics/tile.h
 )
 
 target_include_directories(gb_emulator PRIVATE ${CMAKE_SOURCE_DIR}/include)
@@ -40,6 +44,10 @@ add_executable(gb_tests tests/test_game_boy.cc
         include/memory/Memory.h
         src/memory/vram.cc
         include/memory/vram.h
+        src/graphics/sdl2/sdl_2_renderer.cc
+        include/graphics/sdl2/sdl_2_renderer.h
+        src/graphics/tile.cc
+        include/graphics/tile.h
 )
 
 target_include_directories(gb_tests PRIVATE ${CMAKE_SOURCE_DIR}/include)
