@@ -12,6 +12,9 @@ void GameBoy::run() {
   if (!rom_.IsGameLoaded())
     return;
 
+  // initializing renderer in gameboy run class function for now
+  renderer_.Init();
+
   while (true)
     cpu_.Cycle();
 }
