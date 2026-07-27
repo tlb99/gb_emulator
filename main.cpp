@@ -3,9 +3,8 @@
 
 #include "game_boy.h"
 #include "include/memory/rom.h"
+#include "SDL.h"
 
-// TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or click the <icon
-// src="AllIcons.Actions.Execute"/> icon in the gutter.
 int main(int argc, char* argv[]) {
   if (argc < 2) {
       std::cout << "no game provided" << std::endl;
