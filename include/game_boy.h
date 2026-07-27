@@ -4,7 +4,9 @@
 
 #ifndef GB_EMULATOR_GAME_BOY_H
 #define GB_EMULATOR_GAME_BOY_H
+
 #include "graphics/ppu.h"
+#include "graphics/sdl2/sdl_2_renderer.h"
 #include "memory/rom.h"
 #include "processor/cpu.h"
 
@@ -21,6 +23,8 @@ private:
   HRAM hram_;
   VRAM vram_;
   ROM rom_;
+
+  SDL2Renderer renderer_;
 };
 
 #endif //GB_EMULATOR_GAME_BOY_H
