@@ -25,7 +25,7 @@ add_executable(gb_emulator main.cpp
 )
 
 target_include_directories(gb_emulator PRIVATE ${CMAKE_SOURCE_DIR}/include)
-target_link_libraries(gb_emulator PRIVATE SDL2::SDL2)
+target_link_libraries(gb_emulator PRIVATE SDL2::SDL2 SDL2::SDL2main)
 target_link_libraries(gb_emulator PRIVATE spdlog::spdlog)
 
 find_package(Catch2 3 REQUIRED)
