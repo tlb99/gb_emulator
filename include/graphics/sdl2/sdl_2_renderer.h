@@ -4,14 +4,14 @@
 
 #ifndef GB_EMULATOR_SDL_2_RENDERER_H
 #define GB_EMULATOR_SDL_2_RENDERER_H
+#include "SDL.h"
 
-#include <SDL2/SDL.h>
 
 class SDL2Renderer {
 public:
   // Hardcoded values for now
-  const int kDefaultWidth = 160 * 15;
-  const int kDefaultHeight = 144 * 15;
+  const int kDefaultWidth = 160 * 5;
+  const int kDefaultHeight = 144 * 5;
 
   SDL2Renderer() : window_(nullptr), surface_(nullptr) {}
 
